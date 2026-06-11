@@ -9,7 +9,7 @@ import {
   NEUTRAL_CARDS,
   RED_CARDS,
 } from '../data/config';
-import type { Card, CardColor, Character, Team } from '../types';
+import type { Card, CardColor, Character, GuessResult, Team } from '../types';
 
 /** Fisher–Yates shuffle. Returns a new array; does not mutate the input. */
 export function shuffle<T>(input: readonly T[]): T[] {
@@ -126,4 +126,60 @@ export function checkWin(
 /** The opposing team. */
 export function otherTeam(team: Team): Team {
   return team === 'red' ? 'blue' : 'red';
+}
+
+/** Result of applying a single operative guess to the board. */
+export interface GuessOutcome {
+  /** New cards array with the guessed card revealed. */
+  cards: Card[];
+  /** What kind of card was hit, for UI feedback. */
+  result: GuessResult;
+  /** Whether this guess forces the current team's turn to end. */
+  turnEnds: boolean;
+  /** Winner if the game is now decided, else null. */
+  winner: Team | null;
+}
+
+/**
+ * Apply an operative's guess at `index` for `currentTeam`. Pure: returns a new
+ * board and the consequences without mutating the input. Callers are
+ * responsible for ignoring already-revealed cards / finished games before
+ * calling.
+ *
+ * Turn-ending rules (standard Codenames): hitting your own color keeps the turn
+ * alive; hitting a neutral, the opponent's color, or the assassin ends it. The
+ * assassin also loses the game for the guessing team.
+ */
+export function applyGuess(
+  cards: readonly Card[],
+  index: number,
+  currentTeam: Team
+): GuessOutcome {
+  const color = cards[index].assignedColor;
+  const newCards = cards.map((c, i) =>
+    i === index ? { ...c, isRevealed: true } : c
+  );
+
+  let result: GuessResult;
+  let turnEnds: boolean;
+  if (color === 'assassin') {
+    result = 'assassin';
+    turnEnds = true;
+  } else if (color === currentTeam) {
+    result = 'correct';
+    turnEnds = false;
+  } else if (color === 'neutral') {
+    result = 'neutral';
+    turnEnds = true;
+  } else {
+    result = 'wrong-team';
+    turnEnds = true;
+  }
+
+  return {
+    cards: newCards,
+    result,
+    turnEnds,
+    winner: checkWin(newCards, currentTeam),
+  };
 }
