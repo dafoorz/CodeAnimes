@@ -1,4 +1,5 @@
 import { useQuizStore } from '../../store/quizStore';
+import { useQuizNetStore } from '../../store/quizNetStore';
 import { useGameStore } from '../../store/gameStore';
 import {
   QUIZ_CLIP_MAX,
@@ -8,6 +9,7 @@ import {
 } from '../../data/config';
 
 export default function QuizSetup() {
+  const enterOnline = useQuizNetStore((s) => s.enter);
   const numSongs = useQuizStore((s) => s.numSongs);
   const setNumSongs = useQuizStore((s) => s.setNumSongs);
   const showVideo = useQuizStore((s) => s.showVideo);
@@ -126,12 +128,20 @@ export default function QuizSetup() {
         </p>
       )}
 
-      <button
-        onClick={startQuiz}
-        className="rounded-xl bg-gradient-to-r from-team-red to-team-blue py-4 text-lg font-bold text-white shadow-lg transition-transform hover:scale-105"
-      >
-        ▶ Start Quiz
-      </button>
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <button
+          onClick={startQuiz}
+          className="flex-1 rounded-xl bg-gradient-to-r from-team-red to-team-blue py-4 text-lg font-bold text-white shadow-lg transition-transform hover:scale-105"
+        >
+          ▶ Start Solo
+        </button>
+        <button
+          onClick={enterOnline}
+          className="flex-1 rounded-xl border border-white/25 bg-navy-light py-4 text-lg font-bold text-white shadow-lg transition-transform hover:scale-105"
+        >
+          🌐 Play Online
+        </button>
+      </div>
 
       <p className="text-center text-xs text-white/30">
         Clips stream from AnimeThemes.moe. Best in Chrome/Edge/Firefox; some

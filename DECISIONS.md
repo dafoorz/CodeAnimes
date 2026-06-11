@@ -96,6 +96,18 @@ clarifying questions and log decisions here.
   player gets 4 multiple-choice options worth fewer points. Harder tiers carry a
   score multiplier.
 - All quiz constants live in `data/config.ts`.
+- **Preloading:** clips are downloaded in full (as blob object URLs) on the
+  loading screen and played locally, so playback never stalls mid-clip. The
+  smallest available resolution is chosen to keep downloads light; on
+  CORS/timeout it falls back to streaming the original URL.
+- **Online multiplayer (quiz):** a host-authoritative buzzer race over the same
+  generic PeerJS layer (`net/peer.ts` is now generic over message types). The
+  host owns the answers + clock; it tells everyone which clips to preload, starts
+  each round, judges typed guesses, scores by speed, and broadcasts per-round
+  reveals + a leaderboard. Clients preload and play their own local copies.
+  Trade-off: clip URLs (filenames) can hint at the answer to anyone inspecting
+  dev tools — acceptable for casual play; a future version could relay the media
+  as an opaque WebRTC stream.
 
 ## Misc
 - If a famous anime's cover image fails to load, a gradient placeholder with the

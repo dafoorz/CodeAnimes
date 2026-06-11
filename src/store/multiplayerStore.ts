@@ -10,6 +10,7 @@ import {
   maskCardsFor,
   type ClientMessage,
   type GameView,
+  type HostMessage,
   type LobbySnapshot,
   type OnlineScreen,
   type PlayerSeat,
@@ -74,8 +75,8 @@ interface MultiplayerState {
 }
 
 // Network handles live outside React state (non-serializable, non-reactive).
-let netHost: NetHost | null = null;
-let netClient: NetClient | null = null;
+let netHost: NetHost<ClientMessage, HostMessage> | null = null;
+let netClient: NetClient<ClientMessage, HostMessage> | null = null;
 
 export const useMultiplayerStore = create<MultiplayerState>((set, get) => {
   // --- Host helpers ---------------------------------------------------------

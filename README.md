@@ -72,9 +72,15 @@ type the anime's name as fast as you can:
 - Typed answers are matched leniently — common aliases and minor typos count
   (e.g. `aot`, `jjk`).
 
-Clips stream from [AnimeThemes.moe](https://animethemes.moe) (free, no key).
+Clips come from [AnimeThemes.moe](https://animethemes.moe) (free, no key) and
+are **downloaded in full before the round starts**, so playback never stalls.
 They're `.webm`, so they play best in Chrome, Edge, and Firefox; some browsers
 have limited webm support.
+
+**Online multiplayer:** the quiz setup has a **🌐 Play Online** button — create a
+room, share the code, and race friends to name each opening. Everyone downloads
+the clips first, then the host runs synchronized rounds; the fastest correct
+typed answer scores the most, and a leaderboard shows after each round.
 
 ### Two ways to play (Codenames)
 

@@ -1,12 +1,18 @@
 import { useQuizStore } from '../../store/quizStore';
+import { useQuizNetStore } from '../../store/quizNetStore';
 import Spinner from '../../components/Spinner';
 import QuizSetup from './QuizSetup';
 import QuizPlay from './QuizPlay';
 import QuizEnd from './QuizEnd';
+import QuizOnlineRouter from './online/QuizOnlineRouter';
 
 export default function QuizRouter() {
   const screen = useQuizStore((s) => s.screen);
   const loadingMessage = useQuizStore((s) => s.loadingMessage);
+  const onlineActive = useQuizNetStore((s) => s.active);
+
+  // Online multiplayer flow takes over when a session is active.
+  if (onlineActive) return <QuizOnlineRouter />;
 
   if (screen === 'loading') {
     return (

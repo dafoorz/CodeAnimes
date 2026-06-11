@@ -1,9 +1,10 @@
-// Thin wrappers around PeerJS for the host and client sides. PeerJS uses its
-// free public broker only for signaling (exchanging connection info); actual
-// game messages travel directly peer-to-peer over WebRTC DataConnections.
+// Thin, generic wrappers around PeerJS for host and client sides. PeerJS uses
+// its free public broker only for signaling (exchanging connection info); the
+// actual game messages travel directly peer-to-peer over WebRTC
+// DataConnections. The classes are generic over the message types so different
+// games (Codenames, the song quiz) can reuse them with their own protocols.
 
 import Peer, { type DataConnection } from 'peerjs';
-import type { ClientMessage, HostMessage } from './protocol';
 
 /** PeerJS id namespace so room codes don't collide with other apps. */
 const ID_PREFIX = 'animecn-';
@@ -23,19 +24,20 @@ const peerIdFor = (code: string) => `${ID_PREFIX}${code.toUpperCase()}`;
 
 // --- Host --------------------------------------------------------------------
 
-export interface HostHandlers {
+export interface HostHandlers<CMsg> {
   onConnect: (id: string, conn: DataConnection) => void;
-  onMessage: (id: string, msg: ClientMessage) => void;
+  onMessage: (id: string, msg: CMsg) => void;
   onDisconnect: (id: string) => void;
   onError: (message: string) => void;
 }
 
-export class NetHost {
+/** CMsg = messages received from clients; HMsg = messages sent to clients. */
+export class NetHost<CMsg, HMsg> {
   readonly code: string;
   private peer: Peer;
   private conns = new Map<string, DataConnection>();
 
-  constructor(handlers: HostHandlers) {
+  constructor(handlers: HostHandlers<CMsg>) {
     this.code = makeRoomCode();
     this.peer = new Peer(peerIdFor(this.code));
 
@@ -48,9 +50,7 @@ export class NetHost {
         this.conns.set(conn.peer, conn);
         handlers.onConnect(conn.peer, conn);
       });
-      conn.on('data', (data) =>
-        handlers.onMessage(conn.peer, data as ClientMessage)
-      );
+      conn.on('data', (data) => handlers.onMessage(conn.peer, data as CMsg));
       const drop = () => {
         if (this.conns.delete(conn.peer)) handlers.onDisconnect(conn.peer);
       };
@@ -68,11 +68,11 @@ export class NetHost {
     });
   }
 
-  send(id: string, msg: HostMessage): void {
+  send(id: string, msg: HMsg): void {
     this.conns.get(id)?.send(msg);
   }
 
-  broadcast(msg: HostMessage): void {
+  broadcast(msg: HMsg): void {
     for (const conn of this.conns.values()) conn.send(msg);
   }
 
@@ -84,19 +84,20 @@ export class NetHost {
 
 // --- Client ------------------------------------------------------------------
 
-export interface ClientHandlers {
+export interface ClientHandlers<HMsg> {
   /** Called once connected; `selfId` matches the id the host keys us by. */
   onOpen: (selfId: string) => void;
-  onMessage: (msg: HostMessage) => void;
+  onMessage: (msg: HMsg) => void;
   onClose: () => void;
   onError: (message: string) => void;
 }
 
-export class NetClient {
+/** CMsg = messages sent to the host; HMsg = messages received from the host. */
+export class NetClient<CMsg, HMsg> {
   private peer: Peer;
   private conn: DataConnection | null = null;
 
-  constructor(code: string, handlers: ClientHandlers) {
+  constructor(code: string, handlers: ClientHandlers<HMsg>) {
     this.peer = new Peer();
 
     this.peer.on('error', (err) =>
@@ -107,15 +108,13 @@ export class NetClient {
       const conn = this.peer.connect(peerIdFor(code), { reliable: true });
       this.conn = conn;
       conn.on('open', () => handlers.onOpen(this.peer.id));
-      conn.on('data', (data) => handlers.onMessage(data as HostMessage));
+      conn.on('data', (data) => handlers.onMessage(data as HMsg));
       conn.on('close', () => handlers.onClose());
-      conn.on('error', (e) =>
-        handlers.onError(e?.message ?? 'Connection lost')
-      );
+      conn.on('error', (e) => handlers.onError(e?.message ?? 'Connection lost'));
     });
   }
 
-  send(msg: ClientMessage): void {
+  send(msg: CMsg): void {
     this.conn?.send(msg);
   }
 
