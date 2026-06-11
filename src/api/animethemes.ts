@@ -4,7 +4,7 @@
 // of its opening (OP) themes and the direct URL to the opening video file
 // (a .webm on the AnimeThemes CDN that carries both video and audio).
 
-import { ANIMETHEMES_BASE, QUIZ_PRELOAD_TIMEOUT_MS } from '../data/config';
+import { ANIMETHEMES_BASE } from '../data/config';
 
 export interface OpeningMeta {
   animeName: string;
@@ -72,25 +72,6 @@ function extractOpening(anime: AnimeT): OpeningMeta | null {
     }
   }
   return null;
-}
-
-/**
- * Download a clip fully into a local object URL so playback never stalls. Falls
- * back to the original (streaming) URL on CORS/network/timeout failure.
- */
-export async function preloadClip(url: string): Promise<string> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), QUIZ_PRELOAD_TIMEOUT_MS);
-  try {
-    const res = await fetch(url, { signal: controller.signal });
-    if (!res.ok) return url;
-    const blob = await res.blob();
-    return URL.createObjectURL(blob);
-  } catch {
-    return url;
-  } finally {
-    clearTimeout(timer);
-  }
 }
 
 /**

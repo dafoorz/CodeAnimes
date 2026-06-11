@@ -9,7 +9,8 @@ import type {
   QuizRevealInfo,
 } from '../net/quizProtocol';
 import { OPENING_QUIZ } from '../data/openingQuiz';
-import { fetchOpening, preloadClip } from '../api/animethemes';
+import { fetchOpening } from '../api/animethemes';
+import { clearClips, preloadClip } from '../quiz/clipCache';
 import {
   QUIZ_CLIP_SECONDS,
   QUIZ_DEFAULT_SONGS,
@@ -93,11 +94,7 @@ let answeredThisRound = new Set<string>();
 let roundPoints = new Map<string, number>();
 let roundTimer: ReturnType<typeof setTimeout> | null = null;
 let revealTimer: ReturnType<typeof setTimeout> | null = null;
-const blobUrls: string[] = [];
 
-function revokeBlobs() {
-  while (blobUrls.length) URL.revokeObjectURL(blobUrls.pop()!);
-}
 function clearTimers() {
   if (roundTimer) clearTimeout(roundTimer);
   if (revealTimer) clearTimeout(revealTimer);
@@ -137,17 +134,13 @@ export const useQuizNetStore = create<QuizNetState>((set, get) => {
     if (get().isHost) netHost?.broadcast(lobbyFor());
   }
 
-  /** Preload all clip URLs locally (host or client), updating progress. */
+  /** Buffer all clips locally (host or client), updating progress. */
   async function preloadAll(urls: string[]) {
-    set({ preloadTotal: urls.length, preloadDone: 0, clipUrls: [], screen: 'preparing' });
-    const out: string[] = [];
+    set({ preloadTotal: urls.length, preloadDone: 0, clipUrls: urls, screen: 'preparing' });
     for (let i = 0; i < urls.length; i++) {
-      const play = await preloadClip(urls[i]);
-      if (play.startsWith('blob:')) blobUrls.push(play);
-      out.push(play);
-      set({ preloadDone: i + 1, clipUrls: [...out] });
+      await preloadClip(urls[i], get().clipSeconds);
+      set({ preloadDone: i + 1 });
     }
-    set({ clipUrls: out });
   }
 
   // --- Host: round flow -----------------------------------------------------
@@ -309,7 +302,7 @@ export const useQuizNetStore = create<QuizNetState>((set, get) => {
 
     enter: () => {
       clearTimers();
-      revokeBlobs();
+      clearClips();
       hostSongs = [];
       set({ active: true, screen: 'connect', error: null, connecting: false, ...FRESH });
     },
@@ -371,7 +364,7 @@ export const useQuizNetStore = create<QuizNetState>((set, get) => {
 
     leave: () => {
       clearTimers();
-      revokeBlobs();
+      clearClips();
       hostSongs = [];
       netHost?.destroy();
       netClient?.destroy();

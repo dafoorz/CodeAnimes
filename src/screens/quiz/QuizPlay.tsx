@@ -1,14 +1,14 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { useQuizStore } from '../../store/quizStore';
 import { useGameStore } from '../../store/gameStore';
+import ClipPlayer, { type ClipPlayerHandle } from '../../components/quiz/ClipPlayer';
 
 /** Circular countdown ring around the video. */
 function TimerRing({ secondsLeft, max }: { secondsLeft: number; max: number }) {
   const r = 26;
   const c = 2 * Math.PI * r;
   const frac = Math.max(0, Math.min(1, secondsLeft / max));
-  const color =
-    frac > 0.6 ? '#4361ee' : frac > 0.3 ? '#f4a261' : '#e63946';
+  const color = frac > 0.6 ? '#4361ee' : frac > 0.3 ? '#f4a261' : '#e63946';
   return (
     <div className="relative h-16 w-16">
       <svg className="h-16 w-16 -rotate-90" viewBox="0 0 64 64">
@@ -42,8 +42,7 @@ function Stars({ difficulty }: { difficulty: number }) {
   );
 }
 
-/** Animated panel shown over the (hidden) video in audio-only mode. */
-function AudioCover({ playing }: { playing: boolean }) {
+function AudioCover() {
   return (
     <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-gradient-to-br from-navy-light to-navy-card">
       <div className="flex items-end gap-1.5" aria-hidden>
@@ -51,10 +50,7 @@ function AudioCover({ playing }: { playing: boolean }) {
           <span
             key={i}
             className="w-2 rounded-full bg-team-blue"
-            style={{
-              height: 16 + (i % 2 === 0 ? 22 : 8),
-              animation: playing ? `eq 0.8s ease-in-out ${i * 0.12}s infinite` : 'none',
-            }}
+            style={{ height: 16 + (i % 2 === 0 ? 22 : 8), animation: `eq 0.8s ease-in-out ${i * 0.12}s infinite` }}
           />
         ))}
       </div>
@@ -86,61 +82,15 @@ export default function QuizPlay() {
 
   const song = songs[index];
 
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const playerRef = useRef<ClipPlayerHandle>(null);
   const [secondsLeft, setSecondsLeft] = useState(clipSeconds);
   const [guess, setGuess] = useState('');
   const [shake, setShake] = useState(false);
   const [chosen, setChosen] = useState<string | null>(null);
   const [needGesture, setNeedGesture] = useState(false);
 
-  // Reset and start playback when the song changes.
-  useEffect(() => {
-    setSecondsLeft(clipSeconds);
-    setGuess('');
-    setChosen(null);
-    setNeedGesture(false);
-    const v = videoRef.current;
-    if (v) {
-      v.currentTime = 0;
-      v.play().catch(() => setNeedGesture(true));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [index]);
-
-  // Apply volume/mute to the video element whenever they change or the song loads.
-  useEffect(() => {
-    const v = videoRef.current;
-    if (v) {
-      v.volume = volume;
-      v.muted = muted;
-    }
-  }, [volume, muted, index]);
-
-  // Smooth countdown + clip cutoff while guessing.
-  useEffect(() => {
-    if (songStatus !== 'guessing') return;
-    let raf = 0;
-    const tick = () => {
-      const v = videoRef.current;
-      if (v) {
-        const left = clipSeconds - v.currentTime;
-        setSecondsLeft(Math.max(0, left));
-        if (v.currentTime >= clipSeconds) {
-          v.pause();
-          clipEnded();
-          return;
-        }
-      }
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [songStatus, index, clipSeconds, clipEnded]);
-
-  const startManually = () => {
-    setNeedGesture(false);
-    videoRef.current?.play().catch(() => setNeedGesture(true));
-  };
+  const revealed = songStatus === 'revealed';
+  const effVolume = muted ? 0 : volume;
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -155,19 +105,13 @@ export default function QuizPlay() {
   const pick = (option: string) => {
     setChosen(option);
     chooseOption(option);
-    videoRef.current?.play().catch(() => {});
   };
-
-  const revealed = songStatus === 'revealed';
 
   return (
     <div className="mx-auto flex min-h-[100dvh] max-w-xl flex-col px-4 py-4">
       {/* Header */}
       <div className="mb-3 flex items-center justify-between text-sm">
-        <button
-          onClick={goMenu}
-          className="text-white/50 transition-colors hover:text-white"
-        >
+        <button onClick={goMenu} className="text-white/50 transition-colors hover:text-white">
           ← Quit
         </button>
         <span className="font-semibold text-white">
@@ -181,19 +125,19 @@ export default function QuizPlay() {
       {/* Video + timer */}
       <div className="relative overflow-hidden rounded-2xl border-2 border-white/15 bg-black shadow-xl">
         <div className="aspect-video w-full">
-          <video
-            ref={videoRef}
-            src={song.playUrl}
-            preload="auto"
-            playsInline
-            className="h-full w-full object-cover"
+          <ClipPlayer
+            ref={playerRef}
+            url={song.videoUrl}
+            clipSeconds={clipSeconds}
+            volume={effVolume}
+            onTick={setSecondsLeft}
+            onCap={clipEnded}
+            onNeedGesture={setNeedGesture}
           />
         </div>
 
-        {/* Audio-only cover (video still plays underneath for sound) */}
-        {!showVideo && !revealed && <AudioCover playing={!needGesture} />}
+        {!showVideo && !revealed && <AudioCover />}
 
-        {/* Countdown while guessing */}
         {songStatus === 'guessing' && (
           <div className="absolute right-3 top-3">
             <TimerRing secondsLeft={secondsLeft} max={clipSeconds} />
@@ -202,8 +146,8 @@ export default function QuizPlay() {
 
         {needGesture && songStatus === 'guessing' && (
           <button
-            onClick={startManually}
-            className="absolute inset-0 flex items-center justify-center bg-black/70 text-lg font-bold text-white"
+            onClick={() => playerRef.current?.play()}
+            className="absolute inset-0 z-30 flex items-center justify-center bg-black/70 text-lg font-bold text-white"
           >
             ▶ Tap to play the clip
           </button>
@@ -211,12 +155,7 @@ export default function QuizPlay() {
 
         {/* Volume control */}
         <div className="absolute bottom-3 left-3 z-20 flex items-center gap-2 rounded-full bg-black/55 px-3 py-1.5 backdrop-blur">
-          <button
-            onClick={toggleMute}
-            className="text-lg leading-none"
-            title={muted ? 'Unmute' : 'Mute'}
-            aria-label={muted ? 'Unmute' : 'Mute'}
-          >
+          <button onClick={toggleMute} className="text-lg leading-none" aria-label={muted ? 'Unmute' : 'Mute'}>
             {muted || volume === 0 ? '🔇' : volume < 0.5 ? '🔈' : '🔊'}
           </button>
           <input
@@ -294,17 +233,11 @@ export default function QuizPlay() {
               }`}
             >
               {lastCorrect ? '✓ Correct!' : lastMethod === 'none' ? 'Skipped' : '✗ Wrong'}
-              {lastPoints > 0 && (
-                <span className="ml-2 text-white">+{lastPoints}</span>
-              )}
+              {lastPoints > 0 && <span className="ml-2 text-white">+{lastPoints}</span>}
             </div>
             <div className="rounded-xl bg-navy-light px-6 py-3">
-              <p className="font-serif text-xl font-bold text-white">
-                {song.display}
-              </p>
-              {song.songTitle && (
-                <p className="text-sm text-white/60">♪ {song.songTitle}</p>
-              )}
+              <p className="font-serif text-xl font-bold text-white">{song.display}</p>
+              {song.songTitle && <p className="text-sm text-white/60">♪ {song.songTitle}</p>}
             </div>
             {chosen && !lastCorrect && (
               <p className="text-sm text-white/50">You picked: {chosen}</p>

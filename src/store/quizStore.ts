@@ -5,7 +5,8 @@ import type {
   QuizSong,
 } from '../types';
 import { OPENING_QUIZ } from '../data/openingQuiz';
-import { fetchOpening, preloadClip } from '../api/animethemes';
+import { fetchOpening } from '../api/animethemes';
+import { clearClips, preloadClip } from '../quiz/clipCache';
 import { QUIZ_CLIP_SECONDS, QUIZ_DEFAULT_SONGS } from '../data/config';
 import {
   isCorrectGuess,
@@ -71,13 +72,6 @@ const FRESH = {
   loadingMessage: '',
 };
 
-// Object URLs created by clip preloading, revoked when a new round starts or we
-// leave the quiz, so downloaded clips don't leak memory.
-const blobUrls: string[] = [];
-function revokeBlobs() {
-  while (blobUrls.length) URL.revokeObjectURL(blobUrls.pop()!);
-}
-
 export const useQuizStore = create<QuizState>((set, get) => {
   /** Record the outcome of the current song and flip to the revealed state. */
   function reveal(method: QuizAnswerMethod, correct: boolean, points: number) {
@@ -117,8 +111,8 @@ export const useQuizStore = create<QuizState>((set, get) => {
     toggleMute: () => set((s) => ({ muted: !s.muted })),
 
     startQuiz: async () => {
-      const { numSongs } = get();
-      revokeBlobs();
+      const { numSongs, clipSeconds } = get();
+      clearClips();
       set({ ...FRESH, screen: 'loading', loadingMessage: 'Tuning in…' });
 
       // 1) Find playable openings (metadata only).
@@ -136,7 +130,6 @@ export const useQuizStore = create<QuizState>((set, get) => {
             answers: entry.answers,
             difficulty: entry.difficulty,
             videoUrl: meta.videoUrl,
-            playUrl: meta.videoUrl,
             songTitle: meta.songTitle,
             choices: makeChoices(entry.display, OPENING_QUIZ),
           });
@@ -152,12 +145,10 @@ export const useQuizStore = create<QuizState>((set, get) => {
         return;
       }
 
-      // 2) Fully download each clip up front so playback never stalls.
+      // 2) Buffer every clip up front so playback never stalls mid-clip.
       for (let i = 0; i < songs.length; i++) {
-        set({ loadingMessage: `Downloading clips… (${i}/${songs.length})` });
-        const playUrl = await preloadClip(songs[i].videoUrl);
-        if (playUrl.startsWith('blob:')) blobUrls.push(playUrl);
-        songs[i].playUrl = playUrl;
+        set({ loadingMessage: `Buffering clips… (${i}/${songs.length})` });
+        await preloadClip(songs[i].videoUrl, clipSeconds);
       }
 
       set({ songs, index: 0, songStatus: 'guessing', screen: 'play' });
@@ -207,7 +198,7 @@ export const useQuizStore = create<QuizState>((set, get) => {
     },
 
     reset: () => {
-      revokeBlobs();
+      clearClips();
       set({ screen: 'setup', ...FRESH });
     },
   };

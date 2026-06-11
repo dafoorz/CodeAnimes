@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useQuizNetStore } from '../../../store/quizNetStore';
 import { useGameStore } from '../../../store/gameStore';
+import ClipPlayer, { type ClipPlayerHandle } from '../../../components/quiz/ClipPlayer';
 
 function Stars({ difficulty }: { difficulty: number }) {
   return (
@@ -52,7 +53,7 @@ export default function QuizMultiPlay() {
   const leave = useQuizNetStore((s) => s.leave);
   const goQuiz = useGameStore((s) => s.goQuiz);
 
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const playerRef = useRef<ClipPlayerHandle>(null);
   const [secondsLeft, setSecondsLeft] = useState(clipSeconds);
   const [guess, setGuess] = useState('');
   const [shake, setShake] = useState(false);
@@ -63,41 +64,11 @@ export default function QuizMultiPlay() {
   const localEnded = secondsLeft <= 0;
   const clipUrl = clipUrls[roundIndex];
 
-  // Start playback + reset on each round.
+  // Reset the typed guess each round.
   useEffect(() => {
     setGuess('');
     setSecondsLeft(clipSeconds);
-    setNeedGesture(false);
-    const v = videoRef.current;
-    if (v && clipUrl) {
-      v.currentTime = 0;
-      v.volume = volume;
-      v.play().catch(() => setNeedGesture(true));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roundIndex, clipUrl]);
-
-  // Apply volume changes.
-  useEffect(() => {
-    if (videoRef.current) videoRef.current.volume = volume;
-  }, [volume]);
-
-  // Local countdown for display; pause the clip at the limit.
-  useEffect(() => {
-    if (isReveal) return;
-    let raf = 0;
-    const tick = () => {
-      const v = videoRef.current;
-      if (v) {
-        const left = clipSeconds - v.currentTime;
-        setSecondsLeft(Math.max(0, left));
-        if (v.currentTime >= clipSeconds) v.pause();
-      }
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [roundIndex, clipSeconds, isReveal]);
+  }, [roundIndex, clipSeconds]);
 
   // Shake on a rejected guess.
   useEffect(() => {
@@ -140,12 +111,13 @@ export default function QuizMultiPlay() {
       {/* Video */}
       <div className="relative overflow-hidden rounded-2xl border-2 border-white/15 bg-black shadow-xl">
         <div className="aspect-video w-full">
-          <video
-            ref={videoRef}
-            src={clipUrl}
-            preload="auto"
-            playsInline
-            className="h-full w-full object-cover"
+          <ClipPlayer
+            ref={playerRef}
+            url={clipUrl}
+            clipSeconds={clipSeconds}
+            volume={volume}
+            onTick={setSecondsLeft}
+            onNeedGesture={setNeedGesture}
           />
         </div>
         {!showVideo && !isReveal && (
@@ -164,10 +136,7 @@ export default function QuizMultiPlay() {
         )}
         {needGesture && !isReveal && (
           <button
-            onClick={() => {
-              setNeedGesture(false);
-              videoRef.current?.play().catch(() => setNeedGesture(true));
-            }}
+            onClick={() => playerRef.current?.play()}
             className="absolute inset-0 z-30 flex items-center justify-center bg-black/70 text-lg font-bold text-white"
           >
             ▶ Tap to play
