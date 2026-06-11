@@ -1,6 +1,9 @@
 # Anime Codenames
 
-A browser-based, anime-themed take on the classic party game **Codenames**.
+A browser-based anime game hub. From the **main menu** you can pick either of
+two games: **Anime Codenames** or **Guess the Opening**.
+
+The first is an anime-themed take on the classic party game **Codenames**.
 Every card on the 5×5 board is an anime character — portrait, character name,
 and series — pulled live from [MyAnimeList](https://myanimelist.net/) via the
 free [Jikan API](https://docs.api.jikan.moe/). Build a board from famous shows
@@ -62,7 +65,8 @@ type the anime's name as fast as you can:
   floor at the buzzer.
 - **Difficulty scales up** as you go — early openings are popular, later ones get
   obscure (4 tiers), and harder tiers carry a score bonus.
-- **Pick your round length** (5–20 songs) on the setup screen.
+- **Setup options:** round length (5–20 songs), **show video or audio-only**
+  (a harder mode), and **clip length** from 0.5s to 10s.
 - **Miss it?** If the clip ends unanswered you get **4 multiple-choice options**
   (worth fewer points).
 - Typed answers are matched leniently — common aliases and minor typos count

@@ -38,6 +38,7 @@ export interface AnimeOption {
 
 /** High-level screen the app is currently showing. */
 export type Phase =
+  | 'menu'
   | 'home'
   | 'select'
   | 'role'

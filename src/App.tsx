@@ -2,6 +2,7 @@ import { useGameStore } from './store/gameStore';
 import { useMultiplayerStore } from './store/multiplayerStore';
 import { useLocalController } from './game/useLocalController';
 import { useOnlineController } from './game/useOnlineController';
+import MainMenu from './screens/MainMenu';
 import HomeScreen from './screens/HomeScreen';
 import AnimeSelectScreen from './screens/AnimeSelectScreen';
 import RoleSelectScreen from './screens/RoleSelectScreen';
@@ -44,6 +45,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-navy text-white">
+      {phase === 'menu' && <MainMenu />}
       {phase === 'home' && <HomeScreen />}
       {phase === 'select' && <AnimeSelectScreen />}
       {phase === 'role' && <RoleSelectScreen />}

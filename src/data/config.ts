@@ -57,6 +57,11 @@ export const ANIMETHEMES_BASE = 'https://api.animethemes.moe';
 /** How many seconds of the opening play before the clip pauses for choices. */
 export const QUIZ_CLIP_SECONDS = 10;
 
+/** Selectable clip-length bounds (seconds). */
+export const QUIZ_CLIP_MIN = 0.5;
+export const QUIZ_CLIP_MAX = 10;
+export const QUIZ_CLIP_STEP = 0.5;
+
 /** Selectable round lengths and the default. */
 export const QUIZ_SONG_OPTIONS = [5, 10, 15, 20];
 export const QUIZ_DEFAULT_SONGS = 10;

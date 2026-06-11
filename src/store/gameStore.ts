@@ -31,6 +31,7 @@ interface GameState {
   winner: Team | null;
 
   // Navigation
+  goMenu: () => void;
   goHome: () => void;
   goToSelect: () => void;
   goToRole: () => void;
@@ -63,12 +64,13 @@ const initialBoard = {
 };
 
 export const useGameStore = create<GameState>((set, get) => ({
-  phase: 'home',
+  phase: 'menu',
   playerTeam: null,
   playerRole: null,
   spymasterView: false,
   ...initialBoard,
 
+  goMenu: () => set({ phase: 'menu' }),
   goHome: () => set({ phase: 'home' }),
   goToSelect: () => set({ phase: 'select' }),
   goToRole: () => set({ phase: 'role' }),

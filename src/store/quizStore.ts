@@ -6,7 +6,7 @@ import type {
 } from '../types';
 import { OPENING_QUIZ } from '../data/openingQuiz';
 import { fetchOpening } from '../api/animethemes';
-import { QUIZ_DEFAULT_SONGS } from '../data/config';
+import { QUIZ_CLIP_SECONDS, QUIZ_DEFAULT_SONGS } from '../data/config';
 import {
   isCorrectGuess,
   makeChoices,
@@ -21,6 +21,10 @@ export type SongStatus = 'guessing' | 'choices' | 'revealed';
 interface QuizState {
   screen: 'setup' | 'loading' | 'play' | 'end';
   numSongs: number;
+  /** Whether to show the opening video (false = audio-only). */
+  showVideo: boolean;
+  /** Clip length in seconds (0.5–10). */
+  clipSeconds: number;
   loadingMessage: string;
   error: string | null;
 
@@ -37,6 +41,8 @@ interface QuizState {
   results: QuizResult[];
 
   setNumSongs: (n: number) => void;
+  setShowVideo: (v: boolean) => void;
+  setClipSeconds: (s: number) => void;
   startQuiz: () => Promise<void>;
   /** Returns true if the typed guess was correct. */
   submitGuess: (text: string, secondsLeft: number) => boolean;
@@ -86,9 +92,13 @@ export const useQuizStore = create<QuizState>((set, get) => {
   return {
     screen: 'setup',
     numSongs: QUIZ_DEFAULT_SONGS,
+    showVideo: true,
+    clipSeconds: QUIZ_CLIP_SECONDS,
     ...FRESH,
 
     setNumSongs: (n) => set({ numSongs: n }),
+    setShowVideo: (v) => set({ showVideo: v }),
+    setClipSeconds: (s) => set({ clipSeconds: s }),
 
     startQuiz: async () => {
       const { numSongs } = get();
@@ -131,7 +141,7 @@ export const useQuizStore = create<QuizState>((set, get) => {
       if (s.songStatus !== 'guessing') return false;
       const song = s.songs[s.index];
       if (!isCorrectGuess(text, song.answers)) return false;
-      reveal('typed', true, scoreTyped(secondsLeft, song.difficulty));
+      reveal('typed', true, scoreTyped(secondsLeft, song.difficulty, s.clipSeconds));
       return true;
     },
 

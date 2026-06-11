@@ -63,9 +63,14 @@ export function tierMultiplier(difficulty: QuizTier): number {
 /**
  * Points for a typed answer given the seconds remaining on the clip. Linearly
  * decays from base (instant) to a floor (at the buzzer), times the tier bonus.
+ * `clipLength` is the configured clip duration so scoring is fair at any length.
  */
-export function scoreTyped(secondsLeft: number, difficulty: QuizTier): number {
-  const frac = Math.max(0, Math.min(1, secondsLeft / QUIZ_CLIP_SECONDS));
+export function scoreTyped(
+  secondsLeft: number,
+  difficulty: QuizTier,
+  clipLength: number = QUIZ_CLIP_SECONDS
+): number {
+  const frac = Math.max(0, Math.min(1, secondsLeft / clipLength));
   const raw = QUIZ_MIN_TYPED_POINTS + (QUIZ_BASE_POINTS - QUIZ_MIN_TYPED_POINTS) * frac;
   return Math.round(raw * tierMultiplier(difficulty));
 }

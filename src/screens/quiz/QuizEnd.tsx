@@ -6,7 +6,7 @@ export default function QuizEnd() {
   const totalScore = useQuizStore((s) => s.totalScore);
   const reset = useQuizStore((s) => s.reset);
   const startQuiz = useQuizStore((s) => s.startQuiz);
-  const goHome = useGameStore((s) => s.goHome);
+  const goMenu = useGameStore((s) => s.goMenu);
 
   const correct = results.filter((r) => r.correct).length;
   const typed = results.filter((r) => r.method === 'typed' && r.correct).length;
@@ -66,10 +66,10 @@ export default function QuizEnd() {
           Change Settings
         </button>
         <button
-          onClick={goHome}
+          onClick={goMenu}
           className="rounded-xl border border-white/20 px-8 py-3 font-semibold text-white/80 transition-colors hover:bg-white/10"
         >
-          Home
+          Menu
         </button>
       </div>
     </div>

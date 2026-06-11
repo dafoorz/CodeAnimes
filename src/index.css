@@ -52,6 +52,17 @@ body {
   animation: shake 0.3s ease-in-out;
 }
 
+/* Audio-only equalizer bars */
+@keyframes eq {
+  0%,
+  100% {
+    transform: scaleY(0.4);
+  }
+  50% {
+    transform: scaleY(1.4);
+  }
+}
+
 /* Thin scrollbar for dark theme */
 ::-webkit-scrollbar {
   width: 10px;
