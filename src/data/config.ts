@@ -62,6 +62,9 @@ export const QUIZ_CLIP_MIN = 0.5;
 export const QUIZ_CLIP_MAX = 10;
 export const QUIZ_CLIP_STEP = 0.5;
 
+/** Max time to wait while downloading a single clip before falling back to streaming. */
+export const QUIZ_PRELOAD_TIMEOUT_MS = 25000;
+
 /** Selectable round lengths and the default. */
 export const QUIZ_SONG_OPTIONS = [5, 10, 15, 20];
 export const QUIZ_DEFAULT_SONGS = 10;

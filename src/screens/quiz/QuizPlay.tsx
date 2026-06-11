@@ -183,7 +183,8 @@ export default function QuizPlay() {
         <div className="aspect-video w-full">
           <video
             ref={videoRef}
-            src={song.videoUrl}
+            src={song.playUrl}
+            preload="auto"
             playsInline
             className="h-full w-full object-cover"
           />

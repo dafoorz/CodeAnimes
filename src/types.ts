@@ -69,6 +69,8 @@ export interface QuizSong {
   difficulty: QuizTier;
   /** Direct URL to the opening video (webm, includes audio). */
   videoUrl: string;
+  /** URL to actually play from — a preloaded blob object URL, or videoUrl as fallback. */
+  playUrl: string;
   songTitle: string | null;
   /** Four shuffled multiple-choice options including the correct display name. */
   choices: string[];

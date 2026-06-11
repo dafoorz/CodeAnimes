@@ -4,7 +4,7 @@
 // of its opening (OP) themes and the direct URL to the opening video file
 // (a .webm on the AnimeThemes CDN that carries both video and audio).
 
-import { ANIMETHEMES_BASE } from '../data/config';
+import { ANIMETHEMES_BASE, QUIZ_PRELOAD_TIMEOUT_MS } from '../data/config';
 
 export interface OpeningMeta {
   animeName: string;
@@ -16,6 +16,8 @@ export interface OpeningMeta {
 // Minimal shapes for the fields we read.
 interface VideoT {
   link?: string;
+  resolution?: number;
+  size?: number;
 }
 interface EntryT {
   videos?: VideoT[];
@@ -44,12 +46,22 @@ function throttled<T>(task: () => Promise<T>): Promise<T> {
   return run;
 }
 
+/** Pick the smallest (lowest-resolution) video with a link, to keep downloads light. */
+function smallestVideo(videos: VideoT[] = []): VideoT | undefined {
+  return videos
+    .filter((v) => v.link)
+    .sort(
+      (a, b) =>
+        (a.resolution ?? a.size ?? 1e9) - (b.resolution ?? b.size ?? 1e9)
+    )[0];
+}
+
 /** Pull a playable OP video URL out of an anime record, if any. */
 function extractOpening(anime: AnimeT): OpeningMeta | null {
   const ops = (anime.animethemes ?? []).filter((t) => t.type === 'OP');
   for (const theme of ops) {
     for (const entry of theme.animethemeentries ?? []) {
-      const link = entry.videos?.find((v) => v.link)?.link;
+      const link = smallestVideo(entry.videos)?.link;
       if (link) {
         return {
           animeName: anime.name,
@@ -60,6 +72,25 @@ function extractOpening(anime: AnimeT): OpeningMeta | null {
     }
   }
   return null;
+}
+
+/**
+ * Download a clip fully into a local object URL so playback never stalls. Falls
+ * back to the original (streaming) URL on CORS/network/timeout failure.
+ */
+export async function preloadClip(url: string): Promise<string> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), QUIZ_PRELOAD_TIMEOUT_MS);
+  try {
+    const res = await fetch(url, { signal: controller.signal });
+    if (!res.ok) return url;
+    const blob = await res.blob();
+    return URL.createObjectURL(blob);
+  } catch {
+    return url;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 /**

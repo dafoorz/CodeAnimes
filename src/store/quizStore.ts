@@ -5,7 +5,7 @@ import type {
   QuizSong,
 } from '../types';
 import { OPENING_QUIZ } from '../data/openingQuiz';
-import { fetchOpening } from '../api/animethemes';
+import { fetchOpening, preloadClip } from '../api/animethemes';
 import { QUIZ_CLIP_SECONDS, QUIZ_DEFAULT_SONGS } from '../data/config';
 import {
   isCorrectGuess,
@@ -71,6 +71,13 @@ const FRESH = {
   loadingMessage: '',
 };
 
+// Object URLs created by clip preloading, revoked when a new round starts or we
+// leave the quiz, so downloaded clips don't leak memory.
+const blobUrls: string[] = [];
+function revokeBlobs() {
+  while (blobUrls.length) URL.revokeObjectURL(blobUrls.pop()!);
+}
+
 export const useQuizStore = create<QuizState>((set, get) => {
   /** Record the outcome of the current song and flip to the revealed state. */
   function reveal(method: QuizAnswerMethod, correct: boolean, points: number) {
@@ -111,14 +118,16 @@ export const useQuizStore = create<QuizState>((set, get) => {
 
     startQuiz: async () => {
       const { numSongs } = get();
+      revokeBlobs();
       set({ ...FRESH, screen: 'loading', loadingMessage: 'Tuning in…' });
 
+      // 1) Find playable openings (metadata only).
       const ordered = orderByDifficulty(OPENING_QUIZ);
       const songs: QuizSong[] = [];
       for (const entry of ordered) {
         if (songs.length >= numSongs) break;
         set({
-          loadingMessage: `Loading openings… (${songs.length}/${numSongs})`,
+          loadingMessage: `Finding openings… (${songs.length}/${numSongs})`,
         });
         const meta = await fetchOpening(entry.query);
         if (meta) {
@@ -127,6 +136,7 @@ export const useQuizStore = create<QuizState>((set, get) => {
             answers: entry.answers,
             difficulty: entry.difficulty,
             videoUrl: meta.videoUrl,
+            playUrl: meta.videoUrl,
             songTitle: meta.songTitle,
             choices: makeChoices(entry.display, OPENING_QUIZ),
           });
@@ -140,6 +150,14 @@ export const useQuizStore = create<QuizState>((set, get) => {
             'Could not load any openings (AnimeThemes may be unreachable). Please try again.',
         });
         return;
+      }
+
+      // 2) Fully download each clip up front so playback never stalls.
+      for (let i = 0; i < songs.length; i++) {
+        set({ loadingMessage: `Downloading clips… (${i}/${songs.length})` });
+        const playUrl = await preloadClip(songs[i].videoUrl);
+        if (playUrl.startsWith('blob:')) blobUrls.push(playUrl);
+        songs[i].playUrl = playUrl;
       }
 
       set({ songs, index: 0, songStatus: 'guessing', screen: 'play' });
@@ -188,6 +206,9 @@ export const useQuizStore = create<QuizState>((set, get) => {
       }
     },
 
-    reset: () => set({ screen: 'setup', ...FRESH }),
+    reset: () => {
+      revokeBlobs();
+      set({ screen: 'setup', ...FRESH });
+    },
   };
 });
