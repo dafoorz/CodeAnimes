@@ -75,6 +75,28 @@ clarifying questions and log decisions here.
   animes and starts the game. The operative "Peek" toggle is disabled online
   (it would be cheating).
 
+## Opening Quiz — "Guess the Opening" (added later)
+- **Clip source: AnimeThemes.moe.** Free, no API key, CORS-enabled API at
+  `api.animethemes.moe`, and it hosts the real opening **video** files (`.webm`,
+  which carry both video and audio) on its CDN at `v.animethemes.moe`. This is
+  the standard source for anime-music-quiz style apps and the only good free
+  option that provides actual OP video rather than just cover art.
+- **Mode scope: single-player / local.** The quiz is a solo (or shared-screen)
+  mode reached from Home. Networked multiplayer for the quiz (buzzer races) is a
+  much bigger build and is left for later.
+- **Difficulty ramp:** a curated pool in `data/openingQuiz.ts` is tagged into 4
+  tiers (popular → obscure). Songs are drawn tier-by-tier so early rounds are
+  easy and later ones get harder. Clips that fail to fetch are skipped and
+  replaced from the next tier so the round still fills.
+- **Answer matching** is fuzzy (normalize + small Levenshtein tolerance) with
+  several accepted aliases per anime (English, romaji, common abbreviations like
+  "aot"/"jjk"), so typos and alternate names still count.
+- **Scoring** rewards speed: a correct typed answer early in the 10s clip scores
+  near the base points, decaying to a floor; if the clip ends unanswered the
+  player gets 4 multiple-choice options worth fewer points. Harder tiers carry a
+  score multiplier.
+- All quiz constants live in `data/config.ts`.
+
 ## Misc
 - If a famous anime's cover image fails to load, a gradient placeholder with the
   title is shown. If a character card image fails, the character's initials are

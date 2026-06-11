@@ -52,7 +52,27 @@ npm run lint      # type-check only (tsc --noEmit)
    your turn. Revealing the **☠️ assassin** loses the game instantly. First team
    to reveal all of its characters wins.
 
-### Two ways to play
+### Guess the Opening (music quiz)
+
+A second game mode, reached from **🎵 Guess the Opening** on the home screen.
+A 10-second clip of an anime opening plays (real **video + audio**) and you
+type the anime's name as fast as you can:
+
+- **Faster answers score more** — points decay from the start of the clip to a
+  floor at the buzzer.
+- **Difficulty scales up** as you go — early openings are popular, later ones get
+  obscure (4 tiers), and harder tiers carry a score bonus.
+- **Pick your round length** (5–20 songs) on the setup screen.
+- **Miss it?** If the clip ends unanswered you get **4 multiple-choice options**
+  (worth fewer points).
+- Typed answers are matched leniently — common aliases and minor typos count
+  (e.g. `aot`, `jjk`).
+
+Clips stream from [AnimeThemes.moe](https://animethemes.moe) (free, no key).
+They're `.webm`, so they play best in Chrome, Edge, and Firefox; some browsers
+have limited webm support.
+
+### Two ways to play (Codenames)
 
 - **New Game (Local / pass-and-play):** one device, one shared board. Pass it
   around — the Spymaster gives a clue, then Operatives tap to guess. Operatives

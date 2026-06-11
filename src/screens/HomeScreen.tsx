@@ -1,12 +1,15 @@
 import { useGameStore } from '../store/gameStore';
 import { useAnimeStore } from '../store/animeStore';
 import { useMultiplayerStore } from '../store/multiplayerStore';
+import { useQuizStore } from '../store/quizStore';
 
 export default function HomeScreen() {
   const goToSelect = useGameStore((s) => s.goToSelect);
   const goOnline = useGameStore((s) => s.goOnline);
+  const goQuiz = useGameStore((s) => s.goQuiz);
   const resetAnime = useAnimeStore((s) => s.reset);
   const leaveOnline = useMultiplayerStore((s) => s.leave);
+  const resetQuiz = useQuizStore((s) => s.reset);
 
   const handleNewGame = () => {
     resetAnime();
@@ -17,6 +20,11 @@ export default function HomeScreen() {
     resetAnime();
     leaveOnline();
     goOnline();
+  };
+
+  const handleQuiz = () => {
+    resetQuiz();
+    goQuiz();
   };
 
   return (
@@ -53,6 +61,16 @@ export default function HomeScreen() {
           </span>
         </button>
       </div>
+
+      <button
+        onClick={handleQuiz}
+        className="-mt-2 flex animate-pop-in items-center gap-3 rounded-xl border border-amber-400/40 bg-amber-400/10 px-8 py-3 text-lg font-bold text-white shadow-lg transition-transform hover:scale-105 active:scale-100"
+      >
+        🎵 Guess the Opening
+        <span className="text-xs font-normal text-white/60">
+          Name the anime from its OP
+        </span>
+      </button>
 
       <div className="mt-4 w-full animate-fade-in rounded-2xl border border-white/10 bg-navy-light/60 p-6 text-left text-sm text-white/70">
         <h2 className="mb-3 font-serif text-lg font-bold text-white">

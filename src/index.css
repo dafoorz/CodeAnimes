@@ -35,6 +35,23 @@ body {
   transform: rotateY(180deg);
 }
 
+/* Wrong-answer shake for the quiz input */
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-6px);
+  }
+  75% {
+    transform: translateX(6px);
+  }
+}
+.animate-shake {
+  animation: shake 0.3s ease-in-out;
+}
+
 /* Thin scrollbar for dark theme */
 ::-webkit-scrollbar {
   width: 10px;

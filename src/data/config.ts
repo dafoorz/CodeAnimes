@@ -49,6 +49,28 @@ export const CACHE_PREFIX = 'anime-codenames:';
 /** Cache time-to-live (ms). 7 days. */
 export const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
+// --- Opening Quiz ("Guess the Opening") ---
+
+/** AnimeThemes API — free, no key, hosts the real OP video/webm clips. */
+export const ANIMETHEMES_BASE = 'https://api.animethemes.moe';
+
+/** How many seconds of the opening play before the clip pauses for choices. */
+export const QUIZ_CLIP_SECONDS = 10;
+
+/** Selectable round lengths and the default. */
+export const QUIZ_SONG_OPTIONS = [5, 10, 15, 20];
+export const QUIZ_DEFAULT_SONGS = 10;
+
+/** Number of difficulty tiers in the curated pool. */
+export const QUIZ_MAX_TIER = 4;
+
+/** Scoring. */
+export const QUIZ_BASE_POINTS = 1000; // a near-instant typed answer
+export const QUIZ_MIN_TYPED_POINTS = 200; // a typed answer at the buzzer
+export const QUIZ_CHOICE_POINTS = 150; // a correct multiple-choice pick
+/** Extra score weight per difficulty tier above 1 (tier 4 => x1.6). */
+export const QUIZ_TIER_BONUS = 0.2;
+
 // Sanity check kept as a runtime assertion in dev: the four buckets must fill
 // exactly one board.
 if (RED_CARDS + BLUE_CARDS + NEUTRAL_CARDS + ASSASSIN_CARDS !== BOARD_SIZE) {
