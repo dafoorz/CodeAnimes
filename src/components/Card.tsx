@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { Card as CardModel } from '../types';
 import CharacterImage from './CharacterImage';
 import { revealedClasses, spymasterTintClasses } from './colors';
@@ -41,13 +42,18 @@ export default function Card({
 }: CardProps) {
   const { isRevealed, assignedColor } = card;
   const isAssassin = assignedColor === 'assassin';
+  const [hovered, setHovered] = useState(false);
 
   const handleClick = () => {
     if (interactive && !isRevealed) onReveal();
   };
 
   return (
-    <div className="perspective h-full w-full">
+    <div
+      className={`perspective h-full w-full ${hovered ? 'relative z-30' : ''}`}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
       <button
         type="button"
         onClick={handleClick}
@@ -91,6 +97,28 @@ export default function Card({
           )}
         </div>
       </button>
+
+      {/* Hover preview: the full, uncropped portrait, shown until the mouse leaves */}
+      {hovered && (
+        <div className="pointer-events-none absolute left-1/2 top-1/2 z-40 w-44 -translate-x-1/2 -translate-y-1/2 animate-pop-in sm:w-56">
+          <div className="overflow-hidden rounded-xl border-2 border-white/80 bg-navy-light shadow-2xl">
+            <CharacterImage
+              src={card.character.imageUrl}
+              name={card.character.name}
+              fit="contain"
+              className="h-56 w-full bg-black/40 sm:h-72"
+            />
+            <div className="px-2 py-1.5 text-center">
+              <p className="truncate text-sm font-bold text-white">
+                {card.character.name}
+              </p>
+              <p className="truncate text-xs text-white/60">
+                {card.character.anime}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

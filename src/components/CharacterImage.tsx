@@ -5,6 +5,8 @@ interface CharacterImageProps {
   src: string;
   name: string;
   className?: string;
+  /** How the image fills its box. 'cover' crops to fill; 'contain' shows it whole. */
+  fit?: 'cover' | 'contain';
 }
 
 /**
@@ -15,6 +17,7 @@ export default function CharacterImage({
   src,
   name,
   className = '',
+  fit = 'cover',
 }: CharacterImageProps) {
   const [failed, setFailed] = useState(false);
 
@@ -38,7 +41,7 @@ export default function CharacterImage({
       alt={name}
       loading="lazy"
       onError={() => setFailed(true)}
-      className={`object-cover ${className}`}
+      className={`${fit === 'contain' ? 'object-contain' : 'object-cover'} ${className}`}
     />
   );
 }
