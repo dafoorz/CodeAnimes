@@ -18,7 +18,18 @@ import Spinner from '../components/Spinner';
 
 type Tab = 'quick' | 'custom';
 
-export default function AnimeSelectScreen() {
+interface AnimeSelectProps {
+  /**
+   * Called with the built pool when the board is ready. If omitted, the screen
+   * proceeds to the local Role Select. Used by the online host to hand the pool
+   * to the multiplayer store instead.
+   */
+  onBuilt?: (poolSize: number, selectedCount: number) => void;
+  /** Override the back action (defaults to going Home). */
+  onBack?: () => void;
+}
+
+export default function AnimeSelectScreen({ onBuilt, onBack }: AnimeSelectProps) {
   const {
     selected,
     isSelected,
@@ -32,6 +43,7 @@ export default function AnimeSelectScreen() {
   } = useAnimeStore();
   const goToRole = useGameStore((s) => s.goToRole);
   const goHome = useGameStore((s) => s.goHome);
+  const back = onBack ?? goHome;
 
   const [tab, setTab] = useState<Tab>('quick');
   const [query, setQuery] = useState('');
@@ -92,7 +104,8 @@ export default function AnimeSelectScreen() {
       );
       return;
     }
-    goToRole();
+    if (onBuilt) onBuilt(pool.length, selected.length);
+    else goToRole();
   };
 
   if (loading) {
@@ -107,10 +120,10 @@ export default function AnimeSelectScreen() {
     <div className="mx-auto max-w-5xl px-4 py-8">
       <div className="mb-6 flex items-center justify-between">
         <button
-          onClick={goHome}
+          onClick={back}
           className="text-sm text-white/50 transition-colors hover:text-white"
         >
-          ← Home
+          ← Back
         </button>
         <h1 className="font-serif text-2xl font-bold text-white sm:text-3xl">
           Choose Your Animes

@@ -44,6 +44,37 @@ clarifying questions and log decisions here.
   one device shows the board (standard for a Codenames helper). Spymaster view is
   toggleable.
 
+## Online multiplayer (added after initial build)
+- **Transport: host-authoritative WebRTC via PeerJS.** Chosen over a hosted
+  backend (Supabase/Firebase) or a custom WebSocket server because it needs
+  **zero backend, zero accounts, and zero environment variables** — the app
+  stays a pure static site that the user can deploy anywhere. PeerJS's free
+  public broker is used only for signaling; game messages travel directly
+  peer-to-peer over WebRTC DataConnections.
+- **Why host-authoritative:** Codenames is a hidden-information game (operatives
+  must not see the colour key). One peer (the room creator) holds the
+  authoritative board and runs all rules through the existing pure engine. It
+  sends each player a **masked view**: spymasters get the true colours;
+  operatives get colours only for already-revealed cards. The solution therefore
+  never travels to operative clients, so it can't be sniffed from network traffic
+  or memory. A shared database (Supabase) would have made this materially harder
+  (every client holding the anon key could query the key unless guarded by
+  careful row-level security).
+- **Trade-off:** the host's tab is the authority — if the host leaves, the room
+  ends. That's the standard limitation of P2P host-authority and is acceptable
+  for casual play. If always-on hosting or reconnection becomes a requirement,
+  the same protocol (`src/net/protocol.ts`) could be re-pointed at a relay
+  (Supabase Broadcast channel or a small WebSocket server) without touching the
+  engine or UI.
+- **Reuse:** both modes render the same `GameBoard`/`EndScreen` through a shared
+  `BoardController` interface (`src/game/controller.ts`); the local store and the
+  multiplayer store each provide an adapter. The pure engine is the single source
+  of truth in both modes.
+- **Rooms:** short 4-char codes (ambiguous characters removed) map to a
+  namespaced PeerJS id. Players pick team + role in the lobby; the host picks the
+  animes and starts the game. The operative "Peek" toggle is disabled online
+  (it would be cheating).
+
 ## Misc
 - If a famous anime's cover image fails to load, a gradient placeholder with the
   title is shown. If a character card image fails, the character's initials are

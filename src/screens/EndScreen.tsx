@@ -1,16 +1,17 @@
-import { useGameStore, selectScores } from '../store/gameStore';
+import type { BoardController } from '../game/controller';
 import Card from '../components/Card';
 import { teamLabel, teamText } from '../components/colors';
 
-export default function EndScreen() {
-  const winner = useGameStore((s) => s.winner);
-  const lastResult = useGameStore((s) => s.lastResult);
-  const cards = useGameStore((s) => s.cards);
-  const resetGame = useGameStore((s) => s.resetGame);
-  const goHome = useGameStore((s) => s.goHome);
-  const scores = useGameStore(selectScores);
-
-  const wonByAssassin = lastResult === 'assassin';
+export default function EndScreen({
+  controller,
+  playAgainLabel = 'Play Again',
+}: {
+  controller: BoardController;
+  playAgainLabel?: string;
+}) {
+  const ctrl = controller;
+  const winner = ctrl.winner;
+  const wonByAssassin = ctrl.lastResult === 'assassin';
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 text-center">
@@ -34,13 +35,13 @@ export default function EndScreen() {
       <div className="mx-auto mt-6 flex max-w-xs justify-center gap-8 text-sm">
         <div>
           <p className={`font-serif text-3xl font-black ${teamText('red')}`}>
-            {scores.red}
+            {ctrl.scores.red}
           </p>
           <p className="text-white/50">Red left</p>
         </div>
         <div>
           <p className={`font-serif text-3xl font-black ${teamText('blue')}`}>
-            {scores.blue}
+            {ctrl.scores.blue}
           </p>
           <p className="text-white/50">Blue left</p>
         </div>
@@ -51,26 +52,20 @@ export default function EndScreen() {
         Full board
       </p>
       <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
-        {cards.map((card, i) => (
-          <Card
-            key={i}
-            card={card}
-            showColors
-            interactive={false}
-            onReveal={() => {}}
-          />
+        {ctrl.cards.map((card, i) => (
+          <Card key={i} card={card} showColors interactive={false} onReveal={() => {}} />
         ))}
       </div>
 
       <div className="mt-8 flex flex-wrap justify-center gap-3">
         <button
-          onClick={resetGame}
+          onClick={ctrl.playAgain}
           className="rounded-xl bg-gradient-to-r from-team-red to-team-blue px-8 py-3 font-bold text-white shadow-lg transition-transform hover:scale-105"
         >
-          Play Again
+          {playAgainLabel}
         </button>
         <button
-          onClick={goHome}
+          onClick={ctrl.goHome}
           className="rounded-xl border border-white/20 px-8 py-3 font-semibold text-white/80 transition-colors hover:bg-white/10"
         >
           Home

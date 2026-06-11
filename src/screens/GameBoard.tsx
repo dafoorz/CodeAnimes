@@ -1,37 +1,29 @@
 import { useState } from 'react';
-import { useGameStore, selectScores, selectShowColors } from '../store/gameStore';
+import type { BoardController } from '../game/controller';
 import Card from '../components/Card';
 import { teamBg, teamLabel, teamText } from '../components/colors';
 
-function ClueBar() {
-  const {
-    clue,
-    clueNumber,
-    guessesLeft,
-    currentTeam,
-    submitClue,
-    endTurn,
-  } = useGameStore();
+function ClueBar({ ctrl }: { ctrl: BoardController }) {
   const [word, setWord] = useState('');
   const [num, setNum] = useState(1);
 
-  const hasActiveClue = guessesLeft > 0;
+  const hasActiveClue = ctrl.guessesLeft > 0;
 
-  if (!hasActiveClue) {
+  if (!hasActiveClue && ctrl.canClue) {
     return (
       <form
         onSubmit={(e) => {
           e.preventDefault();
           if (word.trim()) {
-            submitClue(word, num);
+            ctrl.submitClue(word, num);
             setWord('');
             setNum(1);
           }
         }}
         className="flex flex-wrap items-center gap-2"
       >
-        <span className={`text-sm font-semibold ${teamText(currentTeam)}`}>
-          {teamLabel(currentTeam)} Spymaster's clue:
+        <span className={`text-sm font-semibold ${teamText(ctrl.currentTeam)}`}>
+          {teamLabel(ctrl.currentTeam)} Spymaster's clue:
         </span>
         <input
           value={word}
@@ -61,95 +53,104 @@ function ClueBar() {
     );
   }
 
-  return (
-    <div className="flex flex-wrap items-center gap-3">
-      <div className="rounded-lg bg-navy-light px-4 py-2">
-        <span className="text-xs uppercase tracking-wide text-white/40">
-          Clue
+  if (hasActiveClue) {
+    return (
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="rounded-lg bg-navy-light px-4 py-2">
+          <span className="text-xs uppercase tracking-wide text-white/40">
+            Clue
+          </span>
+          <p className="font-serif text-lg font-bold text-white">
+            {ctrl.clue}{' '}
+            <span className={teamText(ctrl.currentTeam)}>· {ctrl.clueNumber}</span>
+          </p>
+        </div>
+        <span className="text-sm text-white/70">
+          Guesses left: <strong className="text-white">{ctrl.guessesLeft}</strong>
         </span>
-        <p className="font-serif text-lg font-bold text-white">
-          {clue} <span className={teamText(currentTeam)}>· {clueNumber}</span>
-        </p>
+        {ctrl.canEndTurn && (
+          <button
+            onClick={ctrl.endTurn}
+            className="rounded-lg border border-white/20 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+          >
+            End Turn
+          </button>
+        )}
       </div>
-      <span className="text-sm text-white/70">
-        Guesses left: <strong className="text-white">{guessesLeft}</strong>
-      </span>
-      <button
-        onClick={endTurn}
-        className="rounded-lg border border-white/20 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/10"
-      >
-        End Turn
-      </button>
-    </div>
+    );
+  }
+
+  return (
+    <p className="text-sm text-white/50">
+      {ctrl.waitingText ?? 'Waiting for the spymaster…'}
+    </p>
   );
 }
 
-export default function GameBoard() {
-  const cards = useGameStore((s) => s.cards);
-  const currentTeam = useGameStore((s) => s.currentTeam);
-  const guessesLeft = useGameStore((s) => s.guessesLeft);
-  const winner = useGameStore((s) => s.winner);
-  const playerRole = useGameStore((s) => s.playerRole);
-  const playerTeam = useGameStore((s) => s.playerTeam);
-  const spymasterView = useGameStore((s) => s.spymasterView);
-  const toggleSpymasterView = useGameStore((s) => s.toggleSpymasterView);
-  const revealCard = useGameStore((s) => s.revealCard);
-
-  const scores = useGameStore(selectScores);
-  const showColors = useGameStore(selectShowColors);
-  const canGuess = guessesLeft > 0 && !winner;
+export default function GameBoard({ controller }: { controller: BoardController }) {
+  const ctrl = controller;
 
   return (
     <div className="mx-auto max-w-4xl px-3 py-6">
       {/* Header: scores + turn */}
       <div className="mb-4 flex items-center justify-between gap-2">
-        <ScorePill team="red" remaining={scores.red} active={currentTeam === 'red'} />
+        <ScorePill
+          team="red"
+          remaining={ctrl.scores.red}
+          active={ctrl.currentTeam === 'red'}
+        />
         <div className="text-center">
           <p className="text-xs uppercase tracking-widest text-white/40">
             Now playing
           </p>
-          <p className={`font-serif text-xl font-bold ${teamText(currentTeam)}`}>
-            {teamLabel(currentTeam)}
+          <p className={`font-serif text-xl font-bold ${teamText(ctrl.currentTeam)}`}>
+            {teamLabel(ctrl.currentTeam)}
           </p>
         </div>
-        <ScorePill team="blue" remaining={scores.blue} active={currentTeam === 'blue'} />
+        <ScorePill
+          team="blue"
+          remaining={ctrl.scores.blue}
+          active={ctrl.currentTeam === 'blue'}
+        />
       </div>
 
       {/* Player seat + spymaster toggle */}
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2 text-sm">
         <span className="text-white/50">
           You:{' '}
-          {playerTeam && (
-            <span className={teamText(playerTeam)}>{teamLabel(playerTeam)}</span>
+          {ctrl.playerTeam && (
+            <span className={teamText(ctrl.playerTeam)}>
+              {teamLabel(ctrl.playerTeam)}
+            </span>
           )}{' '}
-          {playerRole}
+          {ctrl.playerRole}
         </span>
-        {playerRole === 'operative' && (
+        {ctrl.canPeek && (
           <button
-            onClick={toggleSpymasterView}
+            onClick={ctrl.togglePeek}
             className="rounded-lg border border-white/20 px-3 py-1.5 font-medium text-white/80 transition-colors hover:bg-white/10"
           >
-            {spymasterView ? '🙈 Hide colors' : '👁 Peek (Spymaster view)'}
+            {ctrl.spymasterView ? '🙈 Hide colors' : '👁 Peek (Spymaster view)'}
           </button>
         )}
       </div>
 
       {/* Board */}
       <div className="grid grid-cols-5 gap-1.5 sm:gap-2.5">
-        {cards.map((card, i) => (
+        {ctrl.cards.map((card, i) => (
           <Card
             key={i}
             card={card}
-            showColors={showColors}
-            interactive={canGuess}
-            onReveal={() => revealCard(i)}
+            showColors={ctrl.showColors}
+            interactive={ctrl.canGuess}
+            onReveal={() => ctrl.revealCard(i)}
           />
         ))}
       </div>
 
       {/* Clue bar */}
       <div className="sticky bottom-0 mt-5 -mx-3 border-t border-white/10 bg-navy/95 px-3 py-4 backdrop-blur">
-        <ClueBar />
+        <ClueBar ctrl={ctrl} />
       </div>
     </div>
   );

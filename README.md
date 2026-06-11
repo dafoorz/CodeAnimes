@@ -15,6 +15,7 @@ board.
 - **Tailwind CSS** (v3) for styling
 - **Zustand** for state management
 - **Jikan REST API** for anime/character data (no API key required)
+- **PeerJS / WebRTC** for online multiplayer (no backend, no API key)
 
 ## Running locally
 
@@ -51,8 +52,33 @@ npm run lint      # type-check only (tsc --noEmit)
    your turn. Revealing the **☠️ assassin** loses the game instantly. First team
    to reveal all of its characters wins.
 
-The board is designed for **hotseat / pass-and-play** on a single device — see
-[`DECISIONS.md`](DECISIONS.md) for the reasoning.
+### Two ways to play
+
+- **New Game (Local / pass-and-play):** one device, one shared board. Pass it
+  around — the Spymaster gives a clue, then Operatives tap to guess. Operatives
+  have a "Peek" toggle for hotseat play.
+- **Play Online:** real multiplayer across devices.
+  - One player picks **Create Room** and shares the 4-character room code.
+  - Others pick **Join Room** and enter the code.
+  - Everyone chooses a team + role in the lobby; the host selects the animes and
+    presses **Start Game**.
+  - Each player only sees what their role should: Spymasters see all colors,
+    Operatives see only revealed cards.
+
+#### How online multiplayer works
+
+Online play uses **host-authoritative WebRTC via PeerJS** — there is **no
+server to run and no API keys**. PeerJS's free public broker is used only to
+introduce peers; the actual game data flows directly peer-to-peer. The room
+creator (host) holds the authoritative board and rules, and sends every other
+player a view masked to their role, so the color key can't be cheated. The
+trade-off: if the host closes their tab, the room ends. See
+[`DECISIONS.md`](DECISIONS.md) for the full reasoning and how to swap the
+transport for an always-on relay later.
+
+> Online play needs WebRTC connectivity to the public PeerJS broker. On very
+> restrictive networks a TURN server may be required; none is configured by
+> default.
 
 ## Game setup (standard Codenames)
 
@@ -108,9 +134,16 @@ src/
   components/  Card, Spinner, images, color helpers
   data/        config.ts (tunable counts) + famousAnime.ts
   engine/      gameLogic.ts — pure deck/color/win functions
+  game/        BoardController interface + local/online adapters
+  net/         protocol.ts (wire types + masking) + peer.ts (PeerJS)
   screens/     Home, AnimeSelect, RoleSelect, GameBoard, End
-  store/       Zustand stores (animeStore, gameStore)
+    online/    ConnectScreen, LobbyScreen
+  store/       Zustand stores (animeStore, gameStore, multiplayerStore)
 ```
+
+Both the local and online modes render the same board UI through a shared
+`BoardController` interface, and both resolve all rules through the pure
+`engine/` functions — the single source of truth.
 
 All game logic lives in pure functions under `engine/`; components and stores
 only orchestrate. See [`DECISIONS.md`](DECISIONS.md) for design choices made

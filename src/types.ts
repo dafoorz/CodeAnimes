@@ -37,7 +37,7 @@ export interface AnimeOption {
 }
 
 /** High-level screen the app is currently showing. */
-export type Phase = 'home' | 'select' | 'role' | 'game' | 'end';
+export type Phase = 'home' | 'select' | 'role' | 'game' | 'end' | 'online';
 
 /** Outcome of a guess, for UI feedback. */
 export type GuessResult = 'correct' | 'wrong-team' | 'neutral' | 'assassin';

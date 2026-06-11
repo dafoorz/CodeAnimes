@@ -1,13 +1,22 @@
 import { useGameStore } from '../store/gameStore';
 import { useAnimeStore } from '../store/animeStore';
+import { useMultiplayerStore } from '../store/multiplayerStore';
 
 export default function HomeScreen() {
   const goToSelect = useGameStore((s) => s.goToSelect);
+  const goOnline = useGameStore((s) => s.goOnline);
   const resetAnime = useAnimeStore((s) => s.reset);
+  const leaveOnline = useMultiplayerStore((s) => s.leave);
 
   const handleNewGame = () => {
     resetAnime();
     goToSelect();
+  };
+
+  const handlePlayOnline = () => {
+    resetAnime();
+    leaveOnline();
+    goOnline();
   };
 
   return (
@@ -24,12 +33,26 @@ export default function HomeScreen() {
         </p>
       </div>
 
-      <button
-        onClick={handleNewGame}
-        className="animate-pop-in rounded-xl bg-gradient-to-r from-team-red to-team-blue px-10 py-4 text-lg font-bold text-white shadow-lg transition-transform hover:scale-105 active:scale-100"
-      >
-        New Game
-      </button>
+      <div className="flex animate-pop-in flex-col items-center gap-3 sm:flex-row">
+        <button
+          onClick={handleNewGame}
+          className="rounded-xl bg-gradient-to-r from-team-red to-team-blue px-10 py-4 text-lg font-bold text-white shadow-lg transition-transform hover:scale-105 active:scale-100"
+        >
+          New Game
+          <span className="block text-xs font-normal text-white/70">
+            Local · pass &amp; play
+          </span>
+        </button>
+        <button
+          onClick={handlePlayOnline}
+          className="rounded-xl border border-white/25 bg-navy-light px-10 py-4 text-lg font-bold text-white shadow-lg transition-transform hover:scale-105 active:scale-100"
+        >
+          Play Online
+          <span className="block text-xs font-normal text-white/60">
+            Create or join a room
+          </span>
+        </button>
+      </div>
 
       <div className="mt-4 w-full animate-fade-in rounded-2xl border border-white/10 bg-navy-light/60 p-6 text-left text-sm text-white/70">
         <h2 className="mb-3 font-serif text-lg font-bold text-white">
