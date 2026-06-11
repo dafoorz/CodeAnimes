@@ -47,7 +47,7 @@ export default function Card({
   };
 
   return (
-    <div className="perspective aspect-[3/4] w-full">
+    <div className="perspective h-full w-full">
       <button
         type="button"
         onClick={handleClick}
@@ -57,14 +57,16 @@ export default function Card({
           isRevealed ? 'rotate-y-180' : ''
         } ${
           interactive && !isRevealed
-            ? 'cursor-pointer hover:-translate-y-0.5 hover:shadow-[0_0_18px_rgba(67,97,238,0.45)]'
+            ? 'cursor-pointer hover:-translate-y-0.5 hover:shadow-[0_0_18px_rgba(67,97,238,0.55)]'
             : 'cursor-default'
         }`}
       >
         {/* Face-down face */}
         <div
-          className={`backface-hidden absolute inset-0 overflow-hidden rounded-lg border border-white/10 bg-navy-card shadow-md ${
-            showColors ? spymasterTintClasses(assignedColor) : ''
+          className={`backface-hidden absolute inset-0 overflow-hidden rounded-lg shadow-md ${
+            showColors
+              ? spymasterTintClasses(assignedColor)
+              : 'border-2 border-white/25 bg-navy-card'
           }`}
         >
           <CharacterContent card={card} />
@@ -75,7 +77,7 @@ export default function Card({
 
         {/* Revealed face */}
         <div
-          className={`backface-hidden rotate-y-180 absolute inset-0 overflow-hidden rounded-lg border-2 shadow-lg ${revealedClasses(
+          className={`backface-hidden rotate-y-180 absolute inset-0 overflow-hidden rounded-lg shadow-lg ${revealedClasses(
             assignedColor
           )}`}
         >

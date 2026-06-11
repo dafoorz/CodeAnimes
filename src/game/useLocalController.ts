@@ -38,6 +38,8 @@ export function useLocalController(): BoardController {
     endTurn: s.endTurn,
     togglePeek: s.toggleSpymasterView,
     playAgain: s.resetGame,
+    restartLabel: 'Play Again',
+    canRestart: true,
     goHome: s.goHome,
   };
 }

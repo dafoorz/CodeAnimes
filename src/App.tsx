@@ -34,8 +34,7 @@ function OnlineRouter() {
       </div>
     );
   if (screen === 'lobby') return <LobbyScreen />;
-  if (screen === 'end')
-    return <EndScreen controller={controller} playAgainLabel="Back to Lobby" />;
+  if (screen === 'end') return <EndScreen controller={controller} />;
   return <GameBoard controller={controller} />;
 }
 

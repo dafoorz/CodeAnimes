@@ -10,6 +10,9 @@ const EMPTY: Card[] = [];
 export function useOnlineController(): BoardController {
   const view = useMultiplayerStore((s) => s.view);
   const you = useMultiplayerStore((s) => s.you);
+  const players = useMultiplayerStore((s) => s.players);
+  const selfId = useMultiplayerStore((s) => s.selfId);
+  const isHost = useMultiplayerStore((s) => s.isHost);
   const submitClue = useMultiplayerStore((s) => s.submitClue);
   const revealCard = useMultiplayerStore((s) => s.revealCard);
   const endTurn = useMultiplayerStore((s) => s.endTurn);
@@ -59,12 +62,22 @@ export function useOnlineController(): BoardController {
     canClue,
     canEndTurn,
     waitingText,
+    roster: players.map((p) => ({
+      name: p.name,
+      team: p.team,
+      role: p.role,
+      isHost: p.isHost,
+      isSelf: p.id === selfId,
+      connected: p.connected,
+    })),
 
     submitClue,
     revealCard,
     endTurn,
     togglePeek: () => {},
     playAgain,
+    restartLabel: 'Back to Lobby',
+    canRestart: isHost,
     goHome: () => {
       leave();
       goHome();

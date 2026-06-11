@@ -7,13 +7,13 @@ import type { CardColor, Team } from '../types';
 export function revealedClasses(color: CardColor): string {
   switch (color) {
     case 'red':
-      return 'bg-team-red text-white border-team-red-dark';
+      return 'bg-team-red text-white border-4 border-red-200';
     case 'blue':
-      return 'bg-team-blue text-white border-team-blue-dark';
+      return 'bg-team-blue text-white border-4 border-blue-200';
     case 'neutral':
-      return 'bg-neutral-tan text-navy border-neutral-tan-dark';
+      return 'bg-white text-navy border-4 border-slate-300';
     case 'assassin':
-      return 'bg-assassin text-white border-black';
+      return 'bg-black text-white border-4 border-white';
   }
 }
 
@@ -21,13 +21,13 @@ export function revealedClasses(color: CardColor): string {
 export function spymasterTintClasses(color: CardColor): string {
   switch (color) {
     case 'red':
-      return 'ring-2 ring-team-red/80 bg-team-red/15';
+      return 'border-4 border-team-red bg-team-red/20';
     case 'blue':
-      return 'ring-2 ring-team-blue/80 bg-team-blue/15';
+      return 'border-4 border-team-blue bg-team-blue/20';
     case 'neutral':
-      return 'ring-2 ring-neutral-tan/70 bg-neutral-tan/10';
+      return 'border-4 border-white bg-white/15';
     case 'assassin':
-      return 'ring-2 ring-white/80 bg-black/60';
+      return 'border-4 border-white bg-black/70';
   }
 }
 
