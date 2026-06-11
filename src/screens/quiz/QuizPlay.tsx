@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { useQuizStore } from '../../store/quizStore';
 import { useGameStore } from '../../store/gameStore';
+import { playableUrl } from '../../quiz/quizLogic';
 import ClipPlayer, { type ClipPlayerHandle } from '../../components/quiz/ClipPlayer';
 
 /** Circular countdown ring around the video. */
@@ -127,7 +128,7 @@ export default function QuizPlay() {
         <div className="aspect-video w-full">
           <ClipPlayer
             ref={playerRef}
-            url={song.videoUrl}
+            url={playableUrl(song.videoUrl, song.audioUrl, showVideo)}
             clipSeconds={clipSeconds}
             volume={effVolume}
             onTick={setSecondsLeft}

@@ -69,6 +69,8 @@ export interface QuizSong {
   difficulty: QuizTier;
   /** Direct URL to the opening video (webm, includes audio). */
   videoUrl: string;
+  /** Direct audio-only URL (small .ogg) for audio-only mode, if available. */
+  audioUrl: string | null;
   songTitle: string | null;
   /** Four shuffled multiple-choice options including the correct display name. */
   choices: string[];

@@ -12,6 +12,7 @@ import {
   isCorrectGuess,
   makeChoices,
   orderByDifficulty,
+  playableUrl,
   scoreChoice,
   scoreTyped,
 } from '../quiz/quizLogic';
@@ -111,7 +112,7 @@ export const useQuizStore = create<QuizState>((set, get) => {
     toggleMute: () => set((s) => ({ muted: !s.muted })),
 
     startQuiz: async () => {
-      const { numSongs, clipSeconds } = get();
+      const { numSongs, clipSeconds, showVideo } = get();
       clearClips();
       set({ ...FRESH, screen: 'loading', loadingMessage: 'Tuning in…' });
 
@@ -130,6 +131,7 @@ export const useQuizStore = create<QuizState>((set, get) => {
             answers: entry.answers,
             difficulty: entry.difficulty,
             videoUrl: meta.videoUrl,
+            audioUrl: meta.audioUrl,
             songTitle: meta.songTitle,
             choices: makeChoices(entry.display, OPENING_QUIZ),
           });
@@ -146,9 +148,11 @@ export const useQuizStore = create<QuizState>((set, get) => {
       }
 
       // 2) Buffer every clip up front so playback never stalls mid-clip.
+      //    In audio-only mode we buffer the small .ogg instead of the video.
       for (let i = 0; i < songs.length; i++) {
         set({ loadingMessage: `Buffering clips… (${i}/${songs.length})` });
-        await preloadClip(songs[i].videoUrl, clipSeconds);
+        const url = playableUrl(songs[i].videoUrl, songs[i].audioUrl, showVideo);
+        await preloadClip(url, clipSeconds);
       }
 
       set({ songs, index: 0, songStatus: 'guessing', screen: 'play' });

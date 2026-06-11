@@ -96,10 +96,15 @@ clarifying questions and log decisions here.
   player gets 4 multiple-choice options worth fewer points. Harder tiers carry a
   score multiplier.
 - All quiz constants live in `data/config.ts`.
-- **Preloading:** clips are downloaded in full (as blob object URLs) on the
-  loading screen and played locally, so playback never stalls mid-clip. The
-  smallest available resolution is chosen to keep downloads light; on
-  CORS/timeout it falls back to streaming the original URL.
+- **Preloading:** the AnimeThemes CDN doesn't allow cross-origin `fetch()`, so
+  clips are buffered into reusable `<video>` elements on the loading screen
+  (CORS-free) and that same buffered element is reused for playback — no
+  re-download, no mid-clip stall. The smallest video resolution is chosen.
+- **Audio-only mode** buffers/plays the small `.ogg` audio file (from
+  AnimeThemes' `audio` relation) instead of the video, so it loads much faster.
+- **Why not YouTube:** its ToS forbids ripping audio, the embed exposes the
+  video title (spoiling the answer), and there's no reliable way to fetch a
+  clean "opening, first N seconds" clip. AnimeThemes is purpose-built for this.
 - **Online multiplayer (quiz):** a host-authoritative buzzer race over the same
   generic PeerJS layer (`net/peer.ts` is now generic over message types). The
   host owns the answers + clock; it tells everyone which clips to preload, starts

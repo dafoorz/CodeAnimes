@@ -90,6 +90,19 @@ export function orderByDifficulty(pool: readonly QuizAnime[]): QuizAnime[] {
   return tiers.flatMap((t) => shuffle(pool.filter((p) => p.difficulty === t)));
 }
 
+/**
+ * The URL to actually play for a clip given the mode: the small audio file in
+ * audio-only mode (much lighter to buffer), else the video. Falls back to the
+ * video if no audio URL is available.
+ */
+export function playableUrl(
+  videoUrl: string,
+  audioUrl: string | null,
+  showVideo: boolean
+): string {
+  return showVideo ? videoUrl : audioUrl ?? videoUrl;
+}
+
 /** Build 4 shuffled options: the correct display plus 3 distractors. */
 export function makeChoices(
   correct: string,

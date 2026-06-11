@@ -11,6 +11,8 @@ export interface OpeningMeta {
   songTitle: string | null;
   /** Direct webm URL (video + audio). */
   videoUrl: string;
+  /** Direct audio-only URL (small .ogg), if available. */
+  audioUrl: string | null;
 }
 
 // Minimal shapes for the fields we read.
@@ -18,6 +20,7 @@ interface VideoT {
   link?: string;
   resolution?: number;
   size?: number;
+  audio?: { link?: string };
 }
 interface EntryT {
   videos?: VideoT[];
@@ -56,17 +59,18 @@ function smallestVideo(videos: VideoT[] = []): VideoT | undefined {
     )[0];
 }
 
-/** Pull a playable OP video URL out of an anime record, if any. */
+/** Pull a playable OP video (+ audio) URL out of an anime record, if any. */
 function extractOpening(anime: AnimeT): OpeningMeta | null {
   const ops = (anime.animethemes ?? []).filter((t) => t.type === 'OP');
   for (const theme of ops) {
     for (const entry of theme.animethemeentries ?? []) {
-      const link = smallestVideo(entry.videos)?.link;
-      if (link) {
+      const video = smallestVideo(entry.videos);
+      if (video?.link) {
         return {
           animeName: anime.name,
           songTitle: theme.song?.title ?? null,
-          videoUrl: link,
+          videoUrl: video.link,
+          audioUrl: video.audio?.link ?? null,
         };
       }
     }
@@ -82,7 +86,7 @@ export async function fetchOpening(query: string): Promise<OpeningMeta | null> {
   return throttled(async () => {
     const params = new URLSearchParams({
       q: query,
-      include: 'animethemes.animethemeentries.videos,animethemes.song',
+      include: 'animethemes.animethemeentries.videos.audio,animethemes.song',
       'page[size]': '4',
       'fields[anime]': 'name,slug',
     });

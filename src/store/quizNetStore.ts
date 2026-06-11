@@ -15,7 +15,12 @@ import {
   QUIZ_CLIP_SECONDS,
   QUIZ_DEFAULT_SONGS,
 } from '../data/config';
-import { isCorrectGuess, orderByDifficulty, scoreTyped } from '../quiz/quizLogic';
+import {
+  isCorrectGuess,
+  orderByDifficulty,
+  playableUrl,
+  scoreTyped,
+} from '../quiz/quizLogic';
 import type { QuizTier } from '../types';
 
 const HOST_ID = 'host';
@@ -24,6 +29,7 @@ const REVEAL_MS = 4500;
 
 interface HostSong {
   videoUrl: string;
+  audioUrl: string | null;
   answers: string[];
   display: string;
   songTitle: string | null;
@@ -413,6 +419,7 @@ export const useQuizNetStore = create<QuizNetState>((set, get) => {
         if (meta) {
           found.push({
             videoUrl: meta.videoUrl,
+            audioUrl: meta.audioUrl,
             answers: entry.answers,
             display: entry.display,
             songTitle: meta.songTitle,
@@ -428,13 +435,16 @@ export const useQuizNetStore = create<QuizNetState>((set, get) => {
       hostSongs = found;
 
       // 2) Tell clients which clips to preload, then preload locally too.
+      //    In audio-only mode everyone buffers the small .ogg files instead.
+      const showVideo = get().showVideo;
+      const urls = found.map((f) => playableUrl(f.videoUrl, f.audioUrl, showVideo));
       netHost?.broadcast({
         t: 'prepare',
-        videoUrls: found.map((f) => f.videoUrl),
+        videoUrls: urls,
         clipSeconds: get().clipSeconds,
-        showVideo: get().showVideo,
+        showVideo,
       });
-      await preloadAll(found.map((f) => f.videoUrl));
+      await preloadAll(urls);
       // Mark host ready and start when everyone is ready.
       patchPlayers((ps) => ps.map((p) => (p.id === HOST_ID ? { ...p, ready: true } : p)));
       maybeBeginRounds();
