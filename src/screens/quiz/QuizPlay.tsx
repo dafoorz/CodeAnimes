@@ -70,6 +70,10 @@ export default function QuizPlay() {
   const totalScore = useQuizStore((s) => s.totalScore);
   const showVideo = useQuizStore((s) => s.showVideo);
   const clipSeconds = useQuizStore((s) => s.clipSeconds);
+  const volume = useQuizStore((s) => s.volume);
+  const muted = useQuizStore((s) => s.muted);
+  const setVolume = useQuizStore((s) => s.setVolume);
+  const toggleMute = useQuizStore((s) => s.toggleMute);
   const lastCorrect = useQuizStore((s) => s.lastCorrect);
   const lastMethod = useQuizStore((s) => s.lastMethod);
   const lastPoints = useQuizStore((s) => s.lastPoints);
@@ -102,6 +106,15 @@ export default function QuizPlay() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [index]);
+
+  // Apply volume/mute to the video element whenever they change or the song loads.
+  useEffect(() => {
+    const v = videoRef.current;
+    if (v) {
+      v.volume = volume;
+      v.muted = muted;
+    }
+  }, [volume, muted, index]);
 
   // Smooth countdown + clip cutoff while guessing.
   useEffect(() => {
@@ -194,6 +207,28 @@ export default function QuizPlay() {
             ▶ Tap to play the clip
           </button>
         )}
+
+        {/* Volume control */}
+        <div className="absolute bottom-3 left-3 z-20 flex items-center gap-2 rounded-full bg-black/55 px-3 py-1.5 backdrop-blur">
+          <button
+            onClick={toggleMute}
+            className="text-lg leading-none"
+            title={muted ? 'Unmute' : 'Mute'}
+            aria-label={muted ? 'Unmute' : 'Mute'}
+          >
+            {muted || volume === 0 ? '🔇' : volume < 0.5 ? '🔈' : '🔊'}
+          </button>
+          <input
+            type="range"
+            min={0}
+            max={1}
+            step={0.05}
+            value={muted ? 0 : volume}
+            onChange={(e) => setVolume(Number(e.target.value))}
+            className="h-1 w-20 accent-team-blue sm:w-28"
+            aria-label="Volume"
+          />
+        </div>
       </div>
 
       {/* Interaction area */}

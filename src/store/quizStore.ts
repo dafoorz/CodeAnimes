@@ -25,6 +25,9 @@ interface QuizState {
   showVideo: boolean;
   /** Clip length in seconds (0.5–10). */
   clipSeconds: number;
+  /** Playback volume (0–1) and mute, persisted across songs/rounds. */
+  volume: number;
+  muted: boolean;
   loadingMessage: string;
   error: string | null;
 
@@ -43,6 +46,8 @@ interface QuizState {
   setNumSongs: (n: number) => void;
   setShowVideo: (v: boolean) => void;
   setClipSeconds: (s: number) => void;
+  setVolume: (v: number) => void;
+  toggleMute: () => void;
   startQuiz: () => Promise<void>;
   /** Returns true if the typed guess was correct. */
   submitGuess: (text: string, secondsLeft: number) => boolean;
@@ -94,11 +99,15 @@ export const useQuizStore = create<QuizState>((set, get) => {
     numSongs: QUIZ_DEFAULT_SONGS,
     showVideo: true,
     clipSeconds: QUIZ_CLIP_SECONDS,
+    volume: 0.8,
+    muted: false,
     ...FRESH,
 
     setNumSongs: (n) => set({ numSongs: n }),
     setShowVideo: (v) => set({ showVideo: v }),
     setClipSeconds: (s) => set({ clipSeconds: s }),
+    setVolume: (v) => set({ volume: Math.max(0, Math.min(1, v)), muted: false }),
+    toggleMute: () => set((s) => ({ muted: !s.muted })),
 
     startQuiz: async () => {
       const { numSongs } = get();
