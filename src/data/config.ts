@@ -19,9 +19,9 @@ export const ASSASSIN_CARDS = 1;
 /** Grid dimension (BOARD_SIZE should equal GRID_DIM^2). */
 export const GRID_DIM = 5;
 
-/** Anime-selection constraints. */
-export const MIN_ANIMES = 3;
-export const MAX_ANIMES = 10;
+/** Anime-selection constraints. The real gate to start is MIN_POOL characters. */
+export const MIN_ANIMES = 1;
+export const MAX_ANIMES = 50;
 
 /** How many famous animes to pre-select / randomize to. */
 export const DEFAULT_PRESELECT = 5;

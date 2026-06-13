@@ -159,7 +159,7 @@ export default function AnimeSelectScreen({ onBuilt, onBack }: AnimeSelectProps)
         <div className="animate-fade-in">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm text-white/70">
-              Pick {MIN_ANIMES}–{MAX_ANIMES} animes to source characters from.
+              Pick any animes — you just need {MIN_POOL}+ characters to start.
             </p>
             <button
               onClick={randomize}
@@ -261,15 +261,17 @@ export default function AnimeSelectScreen({ onBuilt, onBack }: AnimeSelectProps)
               {selectedCount} anime{selectedCount === 1 ? '' : 's'} selected — ~
               {estChars} characters available
             </p>
-            {tooFewChars && selectedCount > 0 && (
-              <p className="text-team-red">
-                ⚠ May be fewer than {BOARD_SIZE} characters — add more animes.
-              </p>
-            )}
-            {selectedCount < MIN_ANIMES && (
+            {selectedCount === 0 ? (
               <p className="text-white/50">
-                Select at least {MIN_ANIMES} animes to build a board.
+                Select at least one anime — the board needs {MIN_POOL}+ characters.
               </p>
+            ) : (
+              tooFewChars && (
+                <p className="text-team-red">
+                  ⚠ Might be under {BOARD_SIZE} characters — add more animes if it
+                  won't build.
+                </p>
+              )
             )}
           </div>
 
