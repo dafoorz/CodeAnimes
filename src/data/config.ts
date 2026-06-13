@@ -89,6 +89,30 @@ export const QUIZ_CHOICE_POINTS = 150; // a correct multiple-choice pick
 /** Extra score weight per difficulty tier above 1 (tier 4 => x1.6). */
 export const QUIZ_TIER_BONUS = 0.2;
 
+// --- Guess the Character ---
+
+export const CHAR_DEFAULT_ROUNDS = 10;
+export const CHAR_MIN_ROUNDS = 1;
+export const CHAR_MAX_ROUNDS = 100;
+/** Most-favorited characters kept per anime for this game. */
+export const CHAR_CAP_PER_ANIME = 35;
+
+/** Base points for Eyes Only / Silhouette (Zoom/Blur use CHAR_LEVEL_POINTS). */
+export const CHAR_BASE_POINTS = 300;
+
+/** Speed bonus: starts at START, drops STEP every INTERVAL seconds, min 0. */
+export const CHAR_SPEED_START = 100;
+export const CHAR_SPEED_STEP = 10;
+export const CHAR_SPEED_INTERVAL = 5;
+
+/** Number of reveal steps for Zoom/Blur and the points per level (1..5). */
+export const CHAR_STEPS = 5;
+export const CHAR_LEVEL_POINTS = [500, 400, 300, 200, 100];
+/** CSS background-size (%) per Extreme Zoom level (most → least zoomed). */
+export const CHAR_ZOOM_SIZES = [800, 650, 500, 350, 200];
+/** CSS blur (px) per Progressive Blur level (most → least blurred). */
+export const CHAR_BLUR_PX = [40, 30, 20, 10, 4];
+
 // Sanity check kept as a runtime assertion in dev: the four buckets must fill
 // exactly one board.
 if (RED_CARDS + BLUE_CARDS + NEUTRAL_CARDS + ASSASSIN_CARDS !== BOARD_SIZE) {

@@ -45,7 +45,8 @@ export type Phase =
   | 'game'
   | 'end'
   | 'online'
-  | 'quiz';
+  | 'quiz'
+  | 'char';
 
 // --- Opening Quiz ---
 
@@ -87,6 +88,24 @@ export interface QuizResult {
   correct: boolean;
   method: QuizAnswerMethod;
   points: number;
+}
+
+// --- Guess the Character ---
+
+export type CharChallenge = 'eyes' | 'silhouette' | 'zoom' | 'blur';
+
+/** How a guess matched the character's name. */
+export type CharMatch = 'perfect' | 'close' | 'no';
+
+/** Per-round outcome for the recap / best-moment. */
+export interface CharResult {
+  name: string;
+  imageUrl: string;
+  anime: string;
+  match: CharMatch | 'skip';
+  points: number;
+  /** Seconds taken from reveal to answer. */
+  seconds: number;
 }
 
 /** Outcome of a guess, for UI feedback. */

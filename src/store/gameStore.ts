@@ -37,6 +37,7 @@ interface GameState {
   goToRole: () => void;
   goOnline: () => void;
   goQuiz: () => void;
+  goChar: () => void;
 
   // Setup
   setPlayer: (team: Team, role: Role) => void;
@@ -76,6 +77,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   goToRole: () => set({ phase: 'role' }),
   goOnline: () => set({ phase: 'online' }),
   goQuiz: () => set({ phase: 'quiz' }),
+  goChar: () => set({ phase: 'char' }),
 
   setPlayer: (team, role) => set({ playerTeam: team, playerRole: role }),
 

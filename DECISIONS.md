@@ -114,6 +114,24 @@ clarifying questions and log decisions here.
   dev tools — acceptable for casual play; a future version could relay the media
   as an opaque WebRTC stream.
 
+## Guess the Character (added later)
+- **Fuzzy matching via fuse.js.** MyAnimeList names are "Last, First", so accepted
+  answers are built from the raw name, both orderings, and each name part (so a
+  given-name nickname like "Zoro" or a single-name character works). Exact
+  normalized match = "perfect"; a fuse near-match = "Close enough!".
+- **CSS-only disguises.** Eyes Only / Extreme Zoom use a `background-image` with
+  `background-size`/`background-position`; Silhouette uses `filter: brightness(0)`
+  on a light panel; Progressive Blur uses `filter: blur()`. No canvas/server.
+- **Character pool** reuses the Codenames anime selection + `animeStore.pool`,
+  then caps to the top 35 favorites per anime (`buildCharPool`).
+- **Online** reuses the generic PeerJS layer with its own protocol
+  (`net/charProtocol.ts` + `store/charNetStore.ts`), host-authoritative: the host
+  sends the disguised image (never the name), judges guesses, and reveals once
+  every player has answered or skipped (no time limit), then advances manually.
+  Per-player zoom/blur level is client-side and reported on guess.
+- All tunables (rounds, points, speed bonus, zoom/blur steps) live in
+  `data/config.ts`.
+
 ## Misc
 - If a famous anime's cover image fails to load, a gradient placeholder with the
   title is shown. If a character card image fails, the character's initials are

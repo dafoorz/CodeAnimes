@@ -1,7 +1,20 @@
 # Anime Codenames
 
-A browser-based anime game hub. From the **main menu** you can pick either of
-two games: **Anime Codenames** or **Guess the Opening**.
+A browser-based anime game hub. From the **main menu** you can pick one of three
+games: **Anime Codenames**, **Guess the Opening**, or **Guess the Character**.
+
+### Guess the Character
+
+Name a disguised anime character as fast as you can — solo or online. Pick a
+challenge type: **Eyes Only**, **Silhouette**, **Extreme Zoom** (zoom out for
+fewer points), or **Progressive Blur** (unblur for fewer points). Faster answers
+earn a bigger speed bonus. Answers are fuzzy-matched with
+[fuse.js](https://www.fusejs.io/) — first name, last name, full name, or a
+name-part nickname all count, and a near-miss shows "Close enough! ✓". Online is
+a host-authoritative race where the round ends once everyone has answered or
+skipped, then the host advances. Characters come from the same anime selection
+(famous list + custom search, top-favorites, capped at 35 per anime). All image
+disguising is pure CSS (crop/zoom/`filter`).
 
 The first is an anime-themed take on the classic party game **Codenames**.
 Every card on the 5×5 board is an anime character — portrait, character name,

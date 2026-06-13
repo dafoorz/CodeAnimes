@@ -11,6 +11,7 @@ import EndScreen from './screens/EndScreen';
 import ConnectScreen from './screens/online/ConnectScreen';
 import LobbyScreen from './screens/online/LobbyScreen';
 import QuizRouter from './screens/quiz/QuizRouter';
+import CharRouter from './screens/char/CharRouter';
 import Spinner from './components/Spinner';
 
 /** Local (single-device) game + end screens, bound to the local controller. */
@@ -53,6 +54,7 @@ export default function App() {
       {phase === 'end' && <LocalEnd />}
       {phase === 'online' && <OnlineRouter />}
       {phase === 'quiz' && <QuizRouter />}
+      {phase === 'char' && <CharRouter />}
     </div>
   );
 }
