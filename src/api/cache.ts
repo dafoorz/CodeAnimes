@@ -39,5 +39,7 @@ export function cacheSet<T>(name: string, value: T): void {
 }
 
 // Cache key builders, centralized so producers and consumers stay in sync.
-export const charactersKey = (malId: number) => `characters:${malId}`;
+// The `v2` on characters invalidates older full-roster caches now that we keep
+// only the most-favorited characters.
+export const charactersKey = (malId: number) => `characters:v2:${malId}`;
 export const coverKey = (malId: number) => `cover:${malId}`;

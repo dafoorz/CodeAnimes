@@ -128,8 +128,10 @@ game logic.
 
 - Base URL: `https://api.jikan.moe/v4` — free, no key.
 - Characters for an anime: `GET /anime/{mal_id}/characters` — each entry gives
-  `character.name`, `character.images.jpg.image_url`, and `character.mal_id`.
-  All roles (Main, Supporting, …) are included.
+  `character.name`, `character.images.jpg.image_url`, `character.mal_id`, and a
+  `favorites` count. Characters are ranked by `favorites` and only the top 15%
+  (capped at 100 per anime) are kept, so the board shows recognizable faces
+  rather than obscure minor characters. Tunable in `data/config.ts`.
 - Cover image for an anime: `GET /anime/{mal_id}` →
   `images.jpg.large_image_url`.
 - Custom search: `GET /anime?q={query}&type=tv&limit=8`.

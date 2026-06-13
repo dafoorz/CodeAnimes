@@ -29,6 +29,14 @@ export const DEFAULT_PRESELECT = 5;
 /** Rough characters-per-anime estimate for the pre-fetch counter. */
 export const EST_CHARS_PER_ANIME = 15;
 
+/**
+ * Character selection per anime: keep only the most-favorited characters so the
+ * board shows recognizable faces, not random minor ones. Take the top
+ * CHARACTER_TOP_PERCENT by MyAnimeList favorites, capped at CHARACTER_CAP.
+ */
+export const CHARACTER_TOP_PERCENT = 0.15;
+export const CHARACTER_CAP = 100;
+
 /** Minimum characters required in the pool before a board can be built. */
 export const MIN_POOL = BOARD_SIZE;
 

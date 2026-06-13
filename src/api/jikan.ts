@@ -4,7 +4,7 @@
 // single shared throttle queue that spaces calls JIKAN_THROTTLE_MS apart.
 // Character lists and cover images are cached in localStorage.
 
-import { JIKAN_BASE, JIKAN_THROTTLE_MS, SEARCH_LIMIT } from '../data/config';
+import { JIKAN_BASE, JIKAN_THROTTLE_MS, SEARCH_LIMIT, CHARACTER_TOP_PERCENT, CHARACTER_CAP } from '../data/config';
 import type { AnimeOption, Character } from '../types';
 import { cacheGet, cacheSet, charactersKey, coverKey } from './cache';
 
@@ -65,6 +65,8 @@ interface CharactersResponse {
       name: string;
       images?: { jpg?: { image_url?: string } };
     };
+    /** MyAnimeList favorite count, used to rank by popularity. */
+    favorites?: number;
   }>;
 }
 
@@ -85,8 +87,9 @@ export async function fetchCoverImage(malId: number): Promise<string> {
 }
 
 /**
- * Fetch every character for an anime (all roles). Returns characters tagged with
- * the anime's title. Cached by malId.
+ * Fetch an anime's most-recognizable characters: rank by MyAnimeList favorites
+ * and keep the top CHARACTER_TOP_PERCENT (capped at CHARACTER_CAP), so the board
+ * shows famous faces rather than random minor characters. Cached by malId.
  */
 export async function fetchCharacters(
   malId: number,
@@ -99,14 +102,22 @@ export async function fetchCharacters(
     `/anime/${malId}/characters`
   );
 
-  const characters: Character[] = json.data
+  const ranked = json.data
     .filter((c) => c.character?.name && c.character.images?.jpg?.image_url)
-    .map((c) => ({
-      malId: c.character.mal_id,
-      name: c.character.name,
-      anime: animeTitle,
-      imageUrl: c.character.images!.jpg!.image_url!,
-    }));
+    .sort((a, b) => (b.favorites ?? 0) - (a.favorites ?? 0));
+
+  // Top 15% by popularity, at least one, capped at 100.
+  const take = Math.min(
+    Math.max(1, Math.ceil(ranked.length * CHARACTER_TOP_PERCENT)),
+    CHARACTER_CAP
+  );
+
+  const characters: Character[] = ranked.slice(0, take).map((c) => ({
+    malId: c.character.mal_id,
+    name: c.character.name,
+    anime: animeTitle,
+    imageUrl: c.character.images!.jpg!.image_url!,
+  }));
 
   if (characters.length > 0) cacheSet(charactersKey(malId), characters);
   return characters;
