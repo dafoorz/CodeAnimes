@@ -2,12 +2,17 @@ import { create } from 'zustand';
 import type { AnimeOption, Character } from '../types';
 import { fetchCharacters, type RankedCharacters } from '../api/jikan';
 import { BOARD_SIZE, CHARACTER_FLOOR, MAX_ANIMES } from '../data/config';
+import { decideContributions, type RankedCount } from '../game/selection';
 
 interface AnimeState {
   /** Animes currently selected to source characters from. */
   selected: AnimeOption[];
   /** Flattened pool of characters fetched from all selected animes. */
   pool: Character[];
+  /** Exact ranked counts per selected anime (malId -> counts), filled lazily. */
+  counts: Record<number, RankedCount>;
+  /** malIds whose counts are currently being fetched. */
+  countLoading: number[];
   /** True while characters are being fetched for the board. */
   loading: boolean;
   /** Progress string shown under the loading spinner. */
@@ -20,6 +25,8 @@ interface AnimeState {
   removeAnime: (malId: number) => void;
   toggleAnime: (anime: AnimeOption) => void;
   setSelection: (animes: AnimeOption[]) => void;
+  /** Lazily fetch exact character counts for any selected anime missing them. */
+  loadCounts: () => Promise<void>;
   /** Fetch characters for all selected animes into `pool`. Resolves true on success. */
   fetchCharacters: () => Promise<boolean>;
   clearError: () => void;
@@ -29,6 +36,8 @@ interface AnimeState {
 export const useAnimeStore = create<AnimeState>((set, get) => ({
   selected: [],
   pool: [],
+  counts: {},
+  countLoading: [],
   loading: false,
   loadingMessage: '',
   error: null,
@@ -57,8 +66,30 @@ export const useAnimeStore = create<AnimeState>((set, get) => ({
     else selectAnime(anime);
   },
 
-  setSelection: (animes) =>
-    set({ selected: animes.slice(0, MAX_ANIMES) }),
+  setSelection: (animes) => set({ selected: animes.slice(0, MAX_ANIMES) }),
+
+  loadCounts: async () => {
+    for (const anime of get().selected) {
+      const { counts, countLoading } = get();
+      if (counts[anime.malId] || countLoading.includes(anime.malId)) continue;
+      set((s) => ({ countLoading: [...s.countLoading, anime.malId] }));
+      try {
+        const r = await fetchCharacters(anime.malId, anime.title);
+        set((s) => ({
+          counts: {
+            ...s.counts,
+            [anime.malId]: { fifteen: r.fifteen, available: r.characters.length },
+          },
+        }));
+      } catch {
+        // Leave it unknown; the build step will surface any real failure.
+      } finally {
+        set((s) => ({
+          countLoading: s.countLoading.filter((id) => id !== anime.malId),
+        }));
+      }
+    }
+  },
 
   fetchCharacters: async () => {
     const { selected } = get();
@@ -78,15 +109,16 @@ export const useAnimeStore = create<AnimeState>((set, get) => ({
         ranked.push(await fetchCharacters(anime.malId, anime.title));
       }
 
-      // Decide the per-anime count across the whole selection:
-      //  - if the combined top-15% reaches a full board, take each anime's 15%;
-      //  - otherwise take the most-favorited CHARACTER_FLOOR (25) from each anime.
-      const fifteenSum = ranked.reduce((sum, r) => sum + r.fifteen, 0);
-      const useFifteen = fifteenSum >= BOARD_SIZE;
+      // Decide each anime's contribution across the whole selection (top-15%, or
+      // 25-each fallback when the combined 15% can't fill a board).
+      const { contributions } = decideContributions(
+        ranked.map((r) => ({ fifteen: r.fifteen, available: r.characters.length })),
+        BOARD_SIZE,
+        CHARACTER_FLOOR
+      );
 
       ranked.forEach((r, i) => {
-        const take = useFifteen ? r.fifteen : CHARACTER_FLOOR;
-        const chosen = r.characters.slice(0, take);
+        const chosen = r.characters.slice(0, contributions[i]);
         pool.push(...chosen);
         updatedSelected[i] = { ...selected[i], characterCount: chosen.length };
       });
@@ -107,5 +139,13 @@ export const useAnimeStore = create<AnimeState>((set, get) => ({
   clearError: () => set({ error: null }),
 
   reset: () =>
-    set({ selected: [], pool: [], loading: false, loadingMessage: '', error: null }),
+    set({
+      selected: [],
+      pool: [],
+      counts: {},
+      countLoading: [],
+      loading: false,
+      loadingMessage: '',
+      error: null,
+    }),
 }));

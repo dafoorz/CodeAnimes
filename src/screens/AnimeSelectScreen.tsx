@@ -1,18 +1,19 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAnimeStore } from '../store/animeStore';
 import { useGameStore } from '../store/gameStore';
 import { FAMOUS_ANIME } from '../data/famousAnime';
 import { searchAnime } from '../api/jikan';
 import {
   BOARD_SIZE,
+  CHARACTER_FLOOR,
   DEFAULT_PRESELECT,
-  EST_CHARS_PER_ANIME,
   MAX_ANIMES,
   MIN_ANIMES,
   MIN_POOL,
 } from '../data/config';
 import type { AnimeOption } from '../types';
 import { shuffle } from '../engine/gameLogic';
+import { decideContributions } from '../game/selection';
 import SelectableAnimeCard from '../components/SelectableAnimeCard';
 import Spinner from '../components/Spinner';
 
@@ -32,9 +33,12 @@ interface AnimeSelectProps {
 export default function AnimeSelectScreen({ onBuilt, onBack }: AnimeSelectProps) {
   const {
     selected,
+    counts,
     isSelected,
     toggleAnime,
+    removeAnime,
     setSelection,
+    loadCounts,
     fetchCharacters,
     loading,
     loadingMessage,
@@ -61,18 +65,28 @@ export default function AnimeSelectScreen({ onBuilt, onBack }: AnimeSelectProps)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Lazily fetch exact character counts whenever the selection changes.
+  useEffect(() => {
+    loadCounts();
+  }, [selected, loadCounts]);
+
   const selectedCount = selected.length;
-  const estChars = useMemo(
-    () =>
-      selected.reduce(
-        (sum, a) => sum + (a.characterCount ?? EST_CHARS_PER_ANIME),
-        0
-      ),
-    [selected]
-  );
-  const tooFewChars = estChars < BOARD_SIZE;
   const atMax = selectedCount >= MAX_ANIMES;
-  const canBuild = selectedCount >= MIN_ANIMES && !loading;
+
+  // Exact per-anime contributions (unknown counts treated as 0 until loaded).
+  const detailItems = selected.map(
+    (a) => counts[a.malId] ?? { fifteen: 0, available: 0 }
+  );
+  const { contributions, total: exactTotal } = decideContributions(
+    detailItems,
+    BOARD_SIZE,
+    CHARACTER_FLOOR
+  );
+  const allLoaded = selected.every((a) => counts[a.malId]);
+  const enoughChars = exactTotal >= BOARD_SIZE;
+
+  const canBuild =
+    selectedCount >= MIN_ANIMES && !loading && (!allLoaded || enoughChars);
 
   const randomize = () => {
     setSelection(shuffle(FAMOUS_ANIME).slice(0, DEFAULT_PRESELECT));
@@ -117,7 +131,7 @@ export default function AnimeSelectScreen({ onBuilt, onBack }: AnimeSelectProps)
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
+    <div className="mx-auto max-w-6xl px-4 py-8">
       <div className="mb-6 flex items-center justify-between">
         <button
           onClick={back}
@@ -136,9 +150,7 @@ export default function AnimeSelectScreen({ onBuilt, onBack }: AnimeSelectProps)
         <button
           onClick={() => setTab('quick')}
           className={`flex-1 rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
-            tab === 'quick'
-              ? 'bg-team-blue text-white'
-              : 'text-white/60 hover:text-white'
+            tab === 'quick' ? 'bg-team-blue text-white' : 'text-white/60 hover:text-white'
           }`}
         >
           Quick Play (Famous Animes)
@@ -146,135 +158,170 @@ export default function AnimeSelectScreen({ onBuilt, onBack }: AnimeSelectProps)
         <button
           onClick={() => setTab('custom')}
           className={`flex-1 rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
-            tab === 'custom'
-              ? 'bg-team-blue text-white'
-              : 'text-white/60 hover:text-white'
+            tab === 'custom' ? 'bg-team-blue text-white' : 'text-white/60 hover:text-white'
           }`}
         >
           Custom Animes
         </button>
       </div>
 
-      {tab === 'quick' && (
-        <div className="animate-fade-in">
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-            <p className="text-sm text-white/70">
-              Pick any animes — you just need {MIN_POOL}+ characters to start.
-            </p>
-            <button
-              onClick={randomize}
-              className="rounded-lg border border-white/20 px-3 py-1.5 text-sm font-medium text-white/80 transition-colors hover:bg-white/10"
-            >
-              🎲 Randomize Selection
-            </button>
-          </div>
-          <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5">
-            {FAMOUS_ANIME.map((anime) => {
-              const sel = isSelected(anime.malId);
-              return (
-                <SelectableAnimeCard
-                  key={anime.malId}
-                  anime={anime}
-                  selected={sel}
-                  disabled={!sel && atMax}
-                  onToggle={() => toggleAnime(anime)}
-                />
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {tab === 'custom' && (
-        <div className="animate-fade-in">
-          <div className="mb-4 flex gap-2">
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && runSearch()}
-              placeholder="Search any anime (e.g. Chainsaw Man)..."
-              className="flex-1 rounded-lg border border-white/15 bg-navy-light px-4 py-2.5 text-white placeholder-white/40 outline-none focus:border-team-blue"
-            />
-            <button
-              onClick={runSearch}
-              disabled={searching || !query.trim()}
-              className="rounded-lg bg-team-blue px-5 py-2.5 font-semibold text-white transition-opacity disabled:opacity-50"
-            >
-              {searching ? '...' : 'Search'}
-            </button>
-          </div>
-
-          {searchError && (
-            <p className="mb-4 text-sm text-team-red">{searchError}</p>
-          )}
-
-          {searching ? (
-            <Spinner message="Searching MyAnimeList..." />
-          ) : results.length > 0 ? (
-            <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5">
-              {results.map((anime) => {
-                const sel = isSelected(anime.malId);
-                return (
-                  <SelectableAnimeCard
-                    key={anime.malId}
-                    anime={anime}
-                    selected={sel}
-                    disabled={!sel && atMax}
-                    onToggle={() => toggleAnime(anime)}
-                  />
-                );
-              })}
-            </div>
-          ) : (
-            <p className="py-8 text-center text-sm text-white/40">
-              Search for any anime by title to add it to your selection.
-            </p>
-          )}
-
-          {selected.length > 0 && (
-            <div className="mt-6">
-              <p className="mb-2 text-xs uppercase tracking-wide text-white/40">
-                Currently selected
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {selected.map((a) => (
-                  <button
-                    key={a.malId}
-                    onClick={() => toggleAnime(a)}
-                    className="rounded-full bg-navy-card px-3 py-1 text-xs text-white/80 transition-colors hover:bg-team-red/30"
-                    title="Click to remove"
-                  >
-                    {a.title} ✕
-                  </button>
-                ))}
+      <div className="lg:flex lg:gap-6">
+        {/* Left: selection grids */}
+        <div className="min-w-0 lg:flex-1">
+          {tab === 'quick' && (
+            <div className="animate-fade-in">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                <p className="text-sm text-white/70">
+                  Pick any animes — you just need {MIN_POOL}+ characters to start.
+                </p>
+                <button
+                  onClick={randomize}
+                  className="rounded-lg border border-white/20 px-3 py-1.5 text-sm font-medium text-white/80 transition-colors hover:bg-white/10"
+                >
+                  🎲 Randomize Selection
+                </button>
+              </div>
+              <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
+                {FAMOUS_ANIME.map((anime) => {
+                  const sel = isSelected(anime.malId);
+                  return (
+                    <SelectableAnimeCard
+                      key={anime.malId}
+                      anime={anime}
+                      selected={sel}
+                      disabled={!sel && atMax}
+                      onToggle={() => toggleAnime(anime)}
+                    />
+                  );
+                })}
               </div>
             </div>
           )}
-        </div>
-      )}
 
-      {/* Footer: counter, warnings, build button */}
-      <div className="sticky bottom-0 mt-8 -mx-4 border-t border-white/10 bg-navy/95 px-4 py-4 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="text-sm">
-            <p className="font-semibold text-white">
-              {selectedCount} anime{selectedCount === 1 ? '' : 's'} selected — ~
-              {estChars} characters available
-            </p>
+          {tab === 'custom' && (
+            <div className="animate-fade-in">
+              <div className="mb-4 flex gap-2">
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && runSearch()}
+                  placeholder="Search any anime (e.g. Chainsaw Man)..."
+                  className="flex-1 rounded-lg border border-white/15 bg-navy-light px-4 py-2.5 text-white placeholder-white/40 outline-none focus:border-team-blue"
+                />
+                <button
+                  onClick={runSearch}
+                  disabled={searching || !query.trim()}
+                  className="rounded-lg bg-team-blue px-5 py-2.5 font-semibold text-white transition-opacity disabled:opacity-50"
+                >
+                  {searching ? '...' : 'Search'}
+                </button>
+              </div>
+
+              {searchError && <p className="mb-4 text-sm text-team-red">{searchError}</p>}
+
+              {searching ? (
+                <Spinner message="Searching MyAnimeList..." />
+              ) : results.length > 0 ? (
+                <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
+                  {results.map((anime) => {
+                    const sel = isSelected(anime.malId);
+                    return (
+                      <SelectableAnimeCard
+                        key={anime.malId}
+                        anime={anime}
+                        selected={sel}
+                        disabled={!sel && atMax}
+                        onToggle={() => toggleAnime(anime)}
+                      />
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="py-8 text-center text-sm text-white/40">
+                  Search for any anime by title to add it to your selection.
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Right: selected list with exact character counts */}
+        <aside className="mt-6 lg:mt-0 lg:w-72 lg:shrink-0">
+          <div className="lg:sticky lg:top-4 rounded-2xl border border-white/10 bg-navy-light p-4">
+            <h3 className="mb-3 font-serif text-lg font-bold text-white">
+              Selected ({selectedCount})
+            </h3>
+
             {selectedCount === 0 ? (
-              <p className="text-white/50">
-                Select at least one anime — the board needs {MIN_POOL}+ characters.
+              <p className="text-sm text-white/40">
+                Tap animes on the left to add them here.
               </p>
             ) : (
-              tooFewChars && (
-                <p className="text-team-red">
-                  ⚠ Might be under {BOARD_SIZE} characters — add more animes if it
-                  won't build.
-                </p>
-              )
+              <ul className="max-h-[45vh] space-y-1.5 overflow-auto pr-1">
+                {selected.map((a, i) => {
+                  const known = !!counts[a.malId];
+                  return (
+                    <li
+                      key={a.malId}
+                      className="flex items-center gap-2 rounded-lg bg-navy-card px-3 py-2"
+                    >
+                      <span className="min-w-0 flex-1 truncate text-sm text-white">
+                        {a.title}
+                      </span>
+                      <span
+                        className="shrink-0 text-xs font-semibold text-team-blue"
+                        title="Characters from this anime"
+                      >
+                        {known ? `${contributions[i]} chars` : '…'}
+                      </span>
+                      <button
+                        onClick={() => removeAnime(a.malId)}
+                        className="shrink-0 text-white/40 transition-colors hover:text-team-red"
+                        title="Remove"
+                        aria-label={`Remove ${a.title}`}
+                      >
+                        ✕
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+
+            {selectedCount > 0 && (
+              <div className="mt-3 border-t border-white/10 pt-3">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-white/60">Total characters</span>
+                  <span
+                    className={`font-serif text-lg font-black ${
+                      allLoaded && !enoughChars ? 'text-team-red' : 'text-white'
+                    }`}
+                  >
+                    {allLoaded ? exactTotal : '…'}
+                  </span>
+                </div>
+                {!allLoaded ? (
+                  <p className="mt-1 text-xs text-white/40">Counting characters…</p>
+                ) : (
+                  !enoughChars && (
+                    <p className="mt-1 text-xs text-team-red">
+                      Need {BOARD_SIZE}+ characters — add more animes.
+                    </p>
+                  )
+                )}
+              </div>
             )}
           </div>
+        </aside>
+      </div>
 
+      {/* Footer: build button */}
+      <div className="sticky bottom-0 mt-8 -mx-4 border-t border-white/10 bg-navy/95 px-4 py-4 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm font-semibold text-white">
+            {selectedCount} anime{selectedCount === 1 ? '' : 's'} ·{' '}
+            {allLoaded ? exactTotal : '…'} characters
+          </p>
           <button
             onClick={handleBuild}
             disabled={!canBuild}
@@ -285,7 +332,7 @@ export default function AnimeSelectScreen({ onBuilt, onBack }: AnimeSelectProps)
         </div>
 
         {(error || poolError) && (
-          <div className="mx-auto mt-3 flex max-w-5xl items-center justify-between gap-3 rounded-lg border border-team-red/40 bg-team-red/10 px-4 py-2 text-sm text-team-red">
+          <div className="mx-auto mt-3 flex max-w-6xl items-center justify-between gap-3 rounded-lg border border-team-red/40 bg-team-red/10 px-4 py-2 text-sm text-team-red">
             <span>{error || poolError}</span>
             <button
               onClick={handleBuild}
