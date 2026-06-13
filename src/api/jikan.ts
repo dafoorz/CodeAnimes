@@ -4,7 +4,14 @@
 // single shared throttle queue that spaces calls JIKAN_THROTTLE_MS apart.
 // Character lists and cover images are cached in localStorage.
 
-import { JIKAN_BASE, JIKAN_THROTTLE_MS, SEARCH_LIMIT, CHARACTER_TOP_PERCENT, CHARACTER_CAP } from '../data/config';
+import {
+  JIKAN_BASE,
+  JIKAN_THROTTLE_MS,
+  SEARCH_LIMIT,
+  CHARACTER_TOP_PERCENT,
+  CHARACTER_FLOOR,
+  CHARACTER_CAP,
+} from '../data/config';
 import type { AnimeOption, Character } from '../types';
 import { cacheGet, cacheSet, charactersKey, coverKey } from './cache';
 
@@ -88,8 +95,9 @@ export async function fetchCoverImage(malId: number): Promise<string> {
 
 /**
  * Fetch an anime's most-recognizable characters: rank by MyAnimeList favorites
- * and keep the top CHARACTER_TOP_PERCENT (capped at CHARACTER_CAP), so the board
- * shows famous faces rather than random minor characters. Cached by malId.
+ * and keep the top CHARACTER_TOP_PERCENT — but at least CHARACTER_FLOOR so a
+ * single anime can fill a board, and at most CHARACTER_CAP. This shows famous
+ * faces rather than random minor characters. Cached by malId.
  */
 export async function fetchCharacters(
   malId: number,
@@ -106,9 +114,10 @@ export async function fetchCharacters(
     .filter((c) => c.character?.name && c.character.images?.jpg?.image_url)
     .sort((a, b) => (b.favorites ?? 0) - (a.favorites ?? 0));
 
-  // Top 15% by popularity, at least one, capped at 100.
+  // Top 15% by popularity, but at least CHARACTER_FLOOR (so one anime can fill a
+  // board) and at most CHARACTER_CAP. slice() naturally clamps to what exists.
   const take = Math.min(
-    Math.max(1, Math.ceil(ranked.length * CHARACTER_TOP_PERCENT)),
+    Math.max(CHARACTER_FLOOR, Math.ceil(ranked.length * CHARACTER_TOP_PERCENT)),
     CHARACTER_CAP
   );
 
