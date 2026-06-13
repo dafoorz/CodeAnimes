@@ -129,10 +129,11 @@ game logic.
 - Base URL: `https://api.jikan.moe/v4` — free, no key.
 - Characters for an anime: `GET /anime/{mal_id}/characters` — each entry gives
   `character.name`, `character.images.jpg.image_url`, `character.mal_id`, and a
-  `favorites` count. Characters are ranked by `favorites` and the top 15% are
-  kept — but at least 25 (so one anime can fill a board) and at most 100 per
-  anime — so the board shows recognizable faces rather than obscure minor
-  characters. Tunable in `data/config.ts`.
+  `favorites` count. Characters are ranked by `favorites`: each anime
+  contributes its **top 15%** (capped at 100). If the whole selection's combined
+  top-15% can't fill the 25-card board, every anime instead contributes its
+  **25 most-favorited**. Either way you get recognizable faces, not obscure
+  minor characters. Tunable in `data/config.ts`.
 - Cover image for an anime: `GET /anime/{mal_id}` →
   `images.jpg.large_image_url`.
 - Custom search: `GET /anime?q={query}&type=tv&limit=8`.

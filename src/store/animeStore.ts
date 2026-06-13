@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import type { AnimeOption, Character } from '../types';
-import { fetchCharacters } from '../api/jikan';
-import { MAX_ANIMES } from '../data/config';
+import { fetchCharacters, type RankedCharacters } from '../api/jikan';
+import { BOARD_SIZE, CHARACTER_FLOOR, MAX_ANIMES } from '../data/config';
 
 interface AnimeState {
   /** Animes currently selected to source characters from. */
@@ -68,15 +68,28 @@ export const useAnimeStore = create<AnimeState>((set, get) => ({
       const pool: Character[] = [];
       const updatedSelected = [...selected];
 
+      // Fetch each anime's favorites-ranked characters (+ its 15% count).
+      const ranked: RankedCharacters[] = [];
       for (let i = 0; i < selected.length; i++) {
         const anime = selected[i];
         set({
           loadingMessage: `Summoning characters from ${anime.title}... (${i + 1}/${selected.length})`,
         });
-        const chars = await fetchCharacters(anime.malId, anime.title);
-        pool.push(...chars);
-        updatedSelected[i] = { ...anime, characterCount: chars.length };
+        ranked.push(await fetchCharacters(anime.malId, anime.title));
       }
+
+      // Decide the per-anime count across the whole selection:
+      //  - if the combined top-15% reaches a full board, take each anime's 15%;
+      //  - otherwise take the most-favorited CHARACTER_FLOOR (25) from each anime.
+      const fifteenSum = ranked.reduce((sum, r) => sum + r.fifteen, 0);
+      const useFifteen = fifteenSum >= BOARD_SIZE;
+
+      ranked.forEach((r, i) => {
+        const take = useFifteen ? r.fifteen : CHARACTER_FLOOR;
+        const chosen = r.characters.slice(0, take);
+        pool.push(...chosen);
+        updatedSelected[i] = { ...selected[i], characterCount: chosen.length };
+      });
 
       set({ pool, selected: updatedSelected, loading: false });
       return true;

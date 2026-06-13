@@ -30,13 +30,13 @@ export const DEFAULT_PRESELECT = 5;
 export const EST_CHARS_PER_ANIME = 25;
 
 /**
- * Character selection per anime: keep only the most-favorited characters so the
- * board shows recognizable faces, not random minor ones. Take the top
- * CHARACTER_TOP_PERCENT by MyAnimeList favorites — but always enough to fill a
- * board from a single anime (CHARACTER_FLOOR) — capped at CHARACTER_CAP.
+ * Character selection (most-favorited first, so the board shows recognizable
+ * faces). Each anime contributes its top CHARACTER_TOP_PERCENT by MyAnimeList
+ * favorites, capped at CHARACTER_CAP. If the selection's combined 15% can't fill
+ * a board, every anime instead contributes its most-favorited CHARACTER_FLOOR.
  */
 export const CHARACTER_TOP_PERCENT = 0.15;
-export const CHARACTER_FLOOR = BOARD_SIZE; // one anime alone can fill a board
+export const CHARACTER_FLOOR = BOARD_SIZE; // fallback count per anime
 export const CHARACTER_CAP = 100;
 
 /** Minimum characters required in the pool before a board can be built. */

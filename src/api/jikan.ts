@@ -9,7 +9,6 @@ import {
   JIKAN_THROTTLE_MS,
   SEARCH_LIMIT,
   CHARACTER_TOP_PERCENT,
-  CHARACTER_FLOOR,
   CHARACTER_CAP,
 } from '../data/config';
 import type { AnimeOption, Character } from '../types';
@@ -94,16 +93,26 @@ export async function fetchCoverImage(malId: number): Promise<string> {
 }
 
 /**
- * Fetch an anime's most-recognizable characters: rank by MyAnimeList favorites
- * and keep the top CHARACTER_TOP_PERCENT — but at least CHARACTER_FLOOR so a
- * single anime can fill a board, and at most CHARACTER_CAP. This shows famous
- * faces rather than random minor characters. Cached by malId.
+ * An anime's characters ranked by MyAnimeList favorites (most-favorited first,
+ * capped at CHARACTER_CAP), plus `fifteen`: how many of them make up the top
+ * CHARACTER_TOP_PERCENT of the full roster. The caller decides whether to use
+ * `fifteen` or a flat fallback count, based on the whole selection.
+ */
+export interface RankedCharacters {
+  characters: Character[];
+  fifteen: number;
+}
+
+/**
+ * Fetch an anime's characters ranked by MyAnimeList favorites (top CHARACTER_CAP)
+ * along with its 15% count, so the board can show recognizable faces. The final
+ * per-anime count is decided by the caller across the whole selection. Cached.
  */
 export async function fetchCharacters(
   malId: number,
   animeTitle: string
-): Promise<Character[]> {
-  const cached = cacheGet<Character[]>(charactersKey(malId));
+): Promise<RankedCharacters> {
+  const cached = cacheGet<RankedCharacters>(charactersKey(malId));
   if (cached) return cached;
 
   const json = await jikanFetch<CharactersResponse>(
@@ -114,22 +123,21 @@ export async function fetchCharacters(
     .filter((c) => c.character?.name && c.character.images?.jpg?.image_url)
     .sort((a, b) => (b.favorites ?? 0) - (a.favorites ?? 0));
 
-  // Top 15% by popularity, but at least CHARACTER_FLOOR (so one anime can fill a
-  // board) and at most CHARACTER_CAP. slice() naturally clamps to what exists.
-  const take = Math.min(
-    Math.max(CHARACTER_FLOOR, Math.ceil(ranked.length * CHARACTER_TOP_PERCENT)),
+  const fifteen = Math.min(
+    Math.ceil(ranked.length * CHARACTER_TOP_PERCENT),
     CHARACTER_CAP
   );
 
-  const characters: Character[] = ranked.slice(0, take).map((c) => ({
+  const characters: Character[] = ranked.slice(0, CHARACTER_CAP).map((c) => ({
     malId: c.character.mal_id,
     name: c.character.name,
     anime: animeTitle,
     imageUrl: c.character.images!.jpg!.image_url!,
   }));
 
-  if (characters.length > 0) cacheSet(charactersKey(malId), characters);
-  return characters;
+  const result: RankedCharacters = { characters, fifteen };
+  if (characters.length > 0) cacheSet(charactersKey(malId), result);
+  return result;
 }
 
 /** Search anime by title for the "Custom Animes" tab. */
