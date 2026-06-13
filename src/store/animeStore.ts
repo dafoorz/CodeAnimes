@@ -117,10 +117,30 @@ export const useAnimeStore = create<AnimeState>((set, get) => ({
         CHARACTER_FLOOR
       );
 
-      ranked.forEach((r, i) => {
-        const chosen = r.characters.slice(0, contributions[i]);
-        pool.push(...chosen);
-        updatedSelected[i] = { ...selected[i], characterCount: chosen.length };
+      // Sequels share characters (same MyAnimeList character id), so de-duplicate
+      // the pool. Assemble in a deterministic order (by anime id, NOT click
+      // order) so the board is the same no matter which anime you picked first.
+      const perAnime = ranked
+        .map((r, i) => ({
+          malId: selected[i].malId,
+          chars: r.characters.slice(0, contributions[i]),
+        }))
+        .sort((a, b) => a.malId - b.malId);
+
+      const seen = new Set<string>();
+      const contributed: Record<number, number> = {};
+      for (const { malId, chars } of perAnime) {
+        for (const c of chars) {
+          const key = `${c.malId}:${c.name}`;
+          if (seen.has(key)) continue;
+          seen.add(key);
+          pool.push(c);
+          contributed[malId] = (contributed[malId] ?? 0) + 1;
+        }
+      }
+
+      selected.forEach((a, i) => {
+        updatedSelected[i] = { ...a, characterCount: contributed[a.malId] ?? 0 };
       });
 
       set({ pool, selected: updatedSelected, loading: false });
