@@ -133,12 +133,14 @@ clarifying questions and log decisions here.
   `data/config.ts`.
 
 ## Guess the Anime (added later)
-- **Data reality:** no free API provides anime screenshots categorized as
-  background/attack/food, so those three modes read from curated arrays in
-  `data/guessAnime.ts` (empty by default → shown as "coming soon" on setup and
-  not startable). **Dialogue** ships fully working with a bundled set of famous
-  quotes (no API, safe — quotes contain no character/anime name). Adding image
-  URLs to the arrays turns the other modes on automatically.
+- **Image modes via Danbooru.** No free API offers anime screenshots categorized
+  by theme, so the three image modes fetch real per-anime images from Danbooru at
+  runtime, filtered to the safe `rating:g` (general audiences). Anonymous
+  searches are limited to 2 tags, so we query `<copyright> <theme>` (theme =
+  scenery/glowing/food) and filter rating client-side. Trade-offs: results are
+  fan art (not screenshots), recognizability varies (esp. "attack effect"), and
+  "background" may include characters since `no_humans` can't fit in the 2-tag
+  budget. **Dialogue** stays bundled (famous quotes, no API).
 - Players guess the **anime title**; fuzzy-matched (`matchTitle`, fuse.js) against
   per-item aliases. Scoring = flat base + the shared char speed bonus. Solo +
   host-authoritative online (`net/ganimeProtocol.ts` + `store/ganimeNetStore.ts`),

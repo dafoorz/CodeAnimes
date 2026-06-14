@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useGAnimeNetStore } from '../../../store/ganimeNetStore';
 import { useGAnimeStore } from '../../../store/ganimeStore';
-import { getItems } from '../../../data/guessAnime';
 import { GA_MODES } from '../GAnimeSetup';
 import { GA_MAX_ROUNDS, GA_MIN_ROUNDS } from '../../../data/config';
+import Spinner from '../../../components/Spinner';
 
 export default function GAnimeLobby() {
   const {
@@ -13,6 +13,7 @@ export default function GAnimeLobby() {
     isHost,
     mode,
     rounds,
+    preparing,
     setMode,
     setRounds,
     hostStart,
@@ -22,8 +23,7 @@ export default function GAnimeLobby() {
 
   const [copied, setCopied] = useState(false);
   const connected = players.filter((p) => p.connected);
-  const available = getItems(mode).length;
-  const canStart = available > 0 && connected.length >= 1;
+  const canStart = connected.length >= 1 && !preparing;
 
   const handleLeave = () => {
     leave();
@@ -81,25 +81,19 @@ export default function GAnimeLobby() {
           <div>
             <p className="mb-2 text-xs uppercase tracking-wide text-white/50">Mode</p>
             <div className="grid grid-cols-2 gap-2">
-              {GA_MODES.map((m) => {
-                const n = getItems(m.id).length;
-                const disabled = n === 0;
-                return (
-                  <button
-                    key={m.id}
-                    disabled={disabled}
-                    onClick={() => setMode(m.id)}
-                    className={`rounded-lg border-2 px-3 py-2 text-left text-sm transition-all ${
-                      mode === m.id
-                        ? 'border-team-blue bg-team-blue/15 text-white'
-                        : 'border-white/15 text-white/70 hover:border-white/40'
-                    } ${disabled ? 'cursor-not-allowed opacity-40' : ''}`}
-                  >
-                    {m.icon} {m.label}
-                    {disabled && <span className="block text-[0.6rem] text-white/40">coming soon</span>}
-                  </button>
-                );
-              })}
+              {GA_MODES.map((m) => (
+                <button
+                  key={m.id}
+                  onClick={() => setMode(m.id)}
+                  className={`rounded-lg border-2 px-3 py-2 text-left text-sm transition-all ${
+                    mode === m.id
+                      ? 'border-team-blue bg-team-blue/15 text-white'
+                      : 'border-white/15 text-white/70 hover:border-white/40'
+                  }`}
+                >
+                  {m.icon} {m.label}
+                </button>
+              ))}
             </div>
           </div>
 
@@ -123,8 +117,9 @@ export default function GAnimeLobby() {
             disabled={!canStart}
             className="w-full rounded-xl bg-gradient-to-r from-team-red to-team-blue py-3 font-bold text-white shadow-lg transition-transform enabled:hover:scale-105 disabled:opacity-40"
           >
-            Start Game
+            {preparing ? 'Loading images…' : 'Start Game'}
           </button>
+          {preparing && <Spinner message="Gathering rounds…" />}
         </div>
       ) : (
         <div className="rounded-2xl border border-white/10 bg-navy-light p-5 text-center text-sm text-white/60">

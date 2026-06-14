@@ -6,13 +6,12 @@ games: **Anime Codenames**, **Guess the Opening**, **Guess the Character**, or
 
 ### Guess the Anime
 
-Name the anime from a clue (no title given) — solo or online. **💬 Dialogue**
-mode is ready now (a bundled set of famous quotes). The image modes — **🌄
-Background only**, **⚔️ Attack effect**, **🍜 Food scene** — read curated scene
-images from `src/data/guessAnime.ts`; they're empty by default (shown as "coming
-soon") because no free API provides categorized anime screenshots, but adding
-image URLs there turns each mode on automatically. Anime titles are fuzzy-matched
-(fuse.js), scored by speed.
+Name the anime from a clue (no title given) — solo or online, four modes:
+**💬 Dialogue** (a bundled set of famous quotes), and three image modes — **🌄
+Background**, **⚔️ Attack effect**, **🍜 Food scene** — which pull real per-anime
+images at runtime from [Danbooru](https://danbooru.donmai.us), filtered to the
+safe `rating:g` (general audiences). Anime titles are fuzzy-matched (fuse.js) and
+scored by speed. The anime↔Danbooru tag map lives in `src/data/guessAnime.ts`.
 
 ### Guess the Character
 

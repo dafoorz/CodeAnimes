@@ -12,7 +12,8 @@ import type {
 import type { CharMatch, GAnimeItem, GAnimeMode } from '../types';
 import { GA_DEFAULT_ROUNDS } from '../data/config';
 import { getItems } from '../data/guessAnime';
-import { gaPoints, pickItems } from '../ganime/ganimeLogic';
+import { gaPoints } from '../ganime/ganimeLogic';
+import { buildItems } from '../ganime/ganimeSource';
 import { matchTitle } from '../char/matching';
 
 const HOST_ID = 'host';
@@ -31,6 +32,8 @@ interface GAnimeNetState {
   mode: GAnimeMode;
   rounds: number;
   available: number;
+  /** Host is fetching images before the first round. */
+  preparing: boolean;
 
   // current round view
   roundIndex: number;
@@ -52,7 +55,7 @@ interface GAnimeNetState {
 
   setMode: (m: GAnimeMode) => void;
   setRounds: (n: number) => void;
-  hostStart: () => void;
+  hostStart: () => Promise<void>;
   hostNext: () => void;
 
   submitGuess: (text: string) => void;
@@ -69,6 +72,7 @@ let roundRows = new Map<string, { name: string; match: CharMatch | 'skip'; point
 const FRESH = {
   players: [] as GAnimePlayerInfo[],
   available: 0,
+  preparing: false,
   roundIndex: 0,
   total: 0,
   prompt: null as GAnimeItem | null,
@@ -343,10 +347,12 @@ export const useGAnimeNetStore = create<GAnimeNetState>((set, get) => {
       broadcastLobby();
     },
 
-    hostStart: () => {
-      const items = pickItems(getItems(get().mode), get().rounds);
+    hostStart: async () => {
+      set({ preparing: true, error: null });
+      const items = await buildItems(get().mode, get().rounds);
+      set({ preparing: false });
       if (items.length === 0) {
-        set({ error: 'This mode has no content yet.' });
+        set({ error: 'Could not load images for this mode. Try again.' });
         return;
       }
       hostItems = items;

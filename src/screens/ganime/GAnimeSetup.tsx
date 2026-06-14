@@ -1,15 +1,14 @@
 import { useGAnimeStore } from '../../store/ganimeStore';
 import { useGAnimeNetStore } from '../../store/ganimeNetStore';
 import { useGameStore } from '../../store/gameStore';
-import { getItems } from '../../data/guessAnime';
 import { GA_MAX_ROUNDS, GA_MIN_ROUNDS } from '../../data/config';
 import type { GAnimeMode } from '../../types';
 
 export const GA_MODES: { id: GAnimeMode; icon: string; label: string; desc: string }[] = [
   { id: 'dialogue', icon: '💬', label: 'Dialogue only', desc: 'Guess from a famous quote.' },
-  { id: 'background', icon: '🌄', label: 'Background only', desc: 'A scene with no characters.' },
-  { id: 'attack', icon: '⚔️', label: 'Attack effect', desc: 'Just the power / attack effect.' },
-  { id: 'food', icon: '🍜', label: 'Food scene', desc: 'Guess from what they eat.' },
+  { id: 'background', icon: '🌄', label: 'Background only', desc: 'A scene from the anime.' },
+  { id: 'attack', icon: '⚔️', label: 'Attack effect', desc: 'A power / attack effect.' },
+  { id: 'food', icon: '🍜', label: 'Food scene', desc: 'Guess from the food.' },
 ];
 
 export default function GAnimeSetup() {
@@ -18,11 +17,9 @@ export default function GAnimeSetup() {
   const rounds = useGAnimeStore((s) => s.rounds);
   const setRounds = useGAnimeStore((s) => s.setRounds);
   const startSolo = useGAnimeStore((s) => s.startSolo);
+  const error = useGAnimeStore((s) => s.error);
   const enterOnline = useGAnimeNetStore((s) => s.enter);
   const goMenu = useGameStore((s) => s.goMenu);
-
-  const count = getItems(mode).length;
-  const ready = count > 0;
 
   return (
     <div className="mx-auto flex min-h-screen max-w-lg flex-col justify-center gap-7 px-6 py-12">
@@ -43,29 +40,21 @@ export default function GAnimeSetup() {
           Mode
         </p>
         <div className="grid grid-cols-2 gap-3">
-          {GA_MODES.map((m) => {
-            const n = getItems(m.id).length;
-            const disabled = n === 0;
-            return (
-              <button
-                key={m.id}
-                onClick={() => !disabled && setMode(m.id)}
-                disabled={disabled}
-                className={`rounded-xl border-2 p-4 text-left transition-all ${
-                  mode === m.id
-                    ? 'border-team-blue bg-team-blue/15'
-                    : 'border-white/15 hover:border-white/40'
-                } ${disabled ? 'cursor-not-allowed opacity-40' : ''}`}
-              >
-                <div className="text-2xl">{m.icon}</div>
-                <p className="mt-1 font-bold text-white">{m.label}</p>
-                <p className="text-xs text-white/60">{m.desc}</p>
-                <p className="mt-1 text-[0.65rem] text-white/40">
-                  {disabled ? 'coming soon' : `${n} available`}
-                </p>
-              </button>
-            );
-          })}
+          {GA_MODES.map((m) => (
+            <button
+              key={m.id}
+              onClick={() => setMode(m.id)}
+              className={`rounded-xl border-2 p-4 text-left transition-all ${
+                mode === m.id
+                  ? 'border-team-blue bg-team-blue/15'
+                  : 'border-white/15 hover:border-white/40'
+              }`}
+            >
+              <div className="text-2xl">{m.icon}</div>
+              <p className="mt-1 font-bold text-white">{m.label}</p>
+              <p className="text-xs text-white/60">{m.desc}</p>
+            </button>
+          ))}
         </div>
       </div>
 
@@ -84,11 +73,16 @@ export default function GAnimeSetup() {
         />
       </div>
 
+      {error && (
+        <p className="rounded-lg border border-team-red/40 bg-team-red/10 px-4 py-2 text-center text-sm text-team-red">
+          {error}
+        </p>
+      )}
+
       <div className="flex flex-col gap-3 sm:flex-row">
         <button
           onClick={startSolo}
-          disabled={!ready}
-          className="flex-1 rounded-xl bg-gradient-to-r from-team-red to-team-blue py-4 text-lg font-bold text-white shadow-lg transition-transform enabled:hover:scale-105 disabled:opacity-40"
+          className="flex-1 rounded-xl bg-gradient-to-r from-team-red to-team-blue py-4 text-lg font-bold text-white shadow-lg transition-transform hover:scale-105"
         >
           ▶ Play Solo
         </button>
@@ -99,12 +93,10 @@ export default function GAnimeSetup() {
           🌐 Play Online
         </button>
       </div>
-      {!ready && (
-        <p className="text-center text-xs text-white/40">
-          This mode has no content yet — pick Dialogue, or add scene images in
-          data/guessAnime.ts.
-        </p>
-      )}
+      <p className="text-center text-xs text-white/30">
+        Dialogue uses bundled quotes; the image modes pull safe images from
+        Danbooru.
+      </p>
     </div>
   );
 }

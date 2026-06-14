@@ -1,17 +1,19 @@
 import { create } from 'zustand';
 import type { CharMatch, GAnimeItem, GAnimeMode, GAnimeResult } from '../types';
 import { GA_DEFAULT_ROUNDS } from '../data/config';
-import { getItems } from '../data/guessAnime';
-import { gaPoints, pickItems } from '../ganime/ganimeLogic';
+import { gaPoints } from '../ganime/ganimeLogic';
+import { buildItems } from '../ganime/ganimeSource';
 import { matchTitle } from '../char/matching';
 
-type Screen = 'setup' | 'play' | 'end';
+type Screen = 'setup' | 'loading' | 'play' | 'end';
 type Status = 'guessing' | 'revealed';
 
 interface GAnimeState {
   screen: Screen;
   mode: GAnimeMode;
   rounds: number;
+  loadingMessage: string;
+  error: string | null;
 
   items: GAnimeItem[];
   index: number;
@@ -26,7 +28,7 @@ interface GAnimeState {
   setMode: (m: GAnimeMode) => void;
   setRounds: (n: number) => void;
   goSetup: () => void;
-  startSolo: () => void;
+  startSolo: () => Promise<void>;
   submitGuess: (text: string) => CharMatch;
   skip: () => void;
   nextRound: () => void;
@@ -62,16 +64,25 @@ export const useGAnimeStore = create<GAnimeState>((set, get) => {
     screen: 'setup',
     mode: 'dialogue',
     rounds: GA_DEFAULT_ROUNDS,
+    loadingMessage: '',
+    error: null,
     ...FRESH,
 
     setMode: (m) => set({ mode: m }),
     setRounds: (n) => set({ rounds: n }),
-    goSetup: () => set({ screen: 'setup' }),
+    goSetup: () => set({ screen: 'setup', error: null }),
 
-    startSolo: () => {
-      const items = pickItems(getItems(get().mode), get().rounds);
-      if (items.length === 0) return;
-      set({ ...FRESH, items, screen: 'play', startedAt: Date.now() });
+    startSolo: async () => {
+      const { mode, rounds } = get();
+      set({ ...FRESH, screen: 'loading', error: null, loadingMessage: 'Gathering rounds…' });
+      const items = await buildItems(mode, rounds, (done, total) =>
+        set({ loadingMessage: `Loading images… (${done}/${total})` })
+      );
+      if (items.length === 0) {
+        set({ screen: 'setup', error: 'Could not load any images. Try again or pick Dialogue.' });
+        return;
+      }
+      set({ items, index: 0, status: 'guessing', screen: 'play', startedAt: Date.now() });
     },
 
     submitGuess: (text) => {
@@ -96,6 +107,6 @@ export const useGAnimeStore = create<GAnimeState>((set, get) => {
       else set({ index: next, status: 'guessing', startedAt: Date.now(), lastMatch: 'no', lastPoints: 0 });
     },
 
-    reset: () => set({ screen: 'setup', ...FRESH }),
+    reset: () => set({ screen: 'setup', error: null, ...FRESH }),
   };
 });

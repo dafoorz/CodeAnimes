@@ -39,20 +39,48 @@ export const ANIME_QUOTES: GAnimeItem[] = [
   { anime: 'Gurren Lagann', answers: ['gurren lagann', 'tengen toppa gurren lagann'], mode: 'dialogue', quote: 'Who the hell do you think I am?!' },
 ];
 
-/** Curated scene images — add entries and the mode turns on. */
-export const ANIME_BACKGROUNDS: GAnimeItem[] = [];
-export const ANIME_ATTACKS: GAnimeItem[] = [];
-export const ANIME_FOODS: GAnimeItem[] = [];
+/**
+ * Image modes pull real per-anime images from Danbooru at runtime (filtered to
+ * the safe `rating:g`). Each entry maps a display name to its Danbooru copyright
+ * tag. Add a line to include more anime in the image modes.
+ */
+export interface GAImageAnime {
+  anime: string;
+  answers: string[];
+  tag: string; // Danbooru copyright tag
+}
+
+export const GA_IMAGE_ANIME: GAImageAnime[] = [
+  { anime: 'Naruto', answers: ['naruto'], tag: 'naruto' },
+  { anime: 'One Piece', answers: ['one piece'], tag: 'one_piece' },
+  { anime: 'Bleach', answers: ['bleach'], tag: 'bleach' },
+  { anime: 'Attack on Titan', answers: ['attack on titan', 'aot', 'snk', 'shingeki no kyojin'], tag: 'shingeki_no_kyojin' },
+  { anime: 'Demon Slayer', answers: ['demon slayer', 'kimetsu no yaiba'], tag: 'kimetsu_no_yaiba' },
+  { anime: 'My Hero Academia', answers: ['my hero academia', 'mha', 'boku no hero academia'], tag: 'boku_no_hero_academia' },
+  { anime: 'Death Note', answers: ['death note'], tag: 'death_note' },
+  { anime: 'Dragon Ball Z', answers: ['dragon ball z', 'dbz', 'dragon ball'], tag: 'dragon_ball' },
+  { anime: 'Jujutsu Kaisen', answers: ['jujutsu kaisen', 'jjk'], tag: 'jujutsu_kaisen' },
+  { anime: 'One Punch Man', answers: ['one punch man', 'opm'], tag: 'one-punch_man' },
+  { anime: 'Tokyo Ghoul', answers: ['tokyo ghoul'], tag: 'tokyo_ghoul' },
+  { anime: 'Fullmetal Alchemist: Brotherhood', answers: ['fullmetal alchemist brotherhood', 'fmab', 'fullmetal alchemist'], tag: 'fullmetal_alchemist' },
+  { anime: 'Hunter x Hunter', answers: ['hunter x hunter', 'hxh'], tag: 'hunter_x_hunter' },
+  { anime: 'Sword Art Online', answers: ['sword art online', 'sao'], tag: 'sword_art_online' },
+  { anime: 'Chainsaw Man', answers: ['chainsaw man', 'csm'], tag: 'chainsaw_man' },
+  { anime: 'Spy x Family', answers: ['spy x family', 'spy family'], tag: 'spy_x_family' },
+  { anime: 'Code Geass', answers: ['code geass'], tag: 'code_geass' },
+  { anime: 'Neon Genesis Evangelion', answers: ['evangelion', 'neon genesis evangelion', 'nge'], tag: 'neon_genesis_evangelion' },
+  { anime: 'Jojo’s Bizarre Adventure', answers: ['jojo', 'jojos bizarre adventure'], tag: 'jojo_no_kimyou_na_bouken_(series)' },
+  { anime: 'Pokémon', answers: ['pokemon', 'pokémon'], tag: 'pokemon_(anime)' },
+];
+
+/** Danbooru theme tag combined with the copyright tag per image mode. */
+export const GA_CATEGORY_TAG: Record<'background' | 'attack' | 'food', string> = {
+  background: 'scenery',
+  attack: 'glowing',
+  food: 'food',
+};
 
 export function getItems(mode: GAnimeMode): GAnimeItem[] {
-  switch (mode) {
-    case 'dialogue':
-      return ANIME_QUOTES;
-    case 'background':
-      return ANIME_BACKGROUNDS;
-    case 'attack':
-      return ANIME_ATTACKS;
-    case 'food':
-      return ANIME_FOODS;
-  }
+  // Only Dialogue is bundled; image modes are fetched at runtime.
+  return mode === 'dialogue' ? ANIME_QUOTES : [];
 }
