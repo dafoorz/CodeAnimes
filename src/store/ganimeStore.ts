@@ -75,11 +75,19 @@ export const useGAnimeStore = create<GAnimeState>((set, get) => {
     startSolo: async () => {
       const { mode, rounds } = get();
       set({ ...FRESH, screen: 'loading', error: null, loadingMessage: 'Gathering rounds…' });
-      const items = await buildItems(mode, rounds, (done, total) =>
-        set({ loadingMessage: `Loading images… (${done}/${total})` })
-      );
+      let items: GAnimeItem[] = [];
+      try {
+        items = await buildItems(mode, rounds, (done, total) =>
+          set({ loadingMessage: `Loading images… (${done}/${total})` })
+        );
+      } catch {
+        items = [];
+      }
       if (items.length === 0) {
-        set({ screen: 'setup', error: 'Could not load any images. Try again or pick Dialogue.' });
+        set({
+          screen: 'setup',
+          error: 'Could not reach MyAnimeList for images. Check your connection and try again.',
+        });
         return;
       }
       set({ items, index: 0, status: 'guessing', screen: 'play', startedAt: Date.now() });
