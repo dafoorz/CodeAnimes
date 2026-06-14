@@ -133,13 +133,15 @@ clarifying questions and log decisions here.
   `data/config.ts`.
 
 ## Guess the Anime (added later)
-- **Image modes via Jikan pictures.** Danbooru's API isn't CORS-enabled (browser
-  fetches were blocked), and no free CORS-enabled API tags anime images by theme.
-  So the three image modes fetch official artwork from Jikan's
-  `/anime/{id}/pictures` (same CORS-friendly API the rest of the app uses, mapped
-  by mal_id). Trade-off: the images are recognizable official art but not
-  theme-specific, so background/attack/food currently share the same source.
-  **Dialogue** stays bundled (famous quotes, no API).
+- **Image modes via Danbooru through a CORS proxy.** Danbooru has the theme tags
+  we need (scenery / food / glowing) but its API isn't CORS-enabled, and Jikan's
+  pictures are only posters/key visuals (not themed). So the JSON query is routed
+  through a public CORS proxy (allorigins, with corsproxy.io fallback); the
+  returned image URLs load directly. Filtered to safe `rating:g`; anonymous
+  2-tag limit means `<copyright> <theme>` with rating filtered client-side.
+  Trade-offs: results are fan art (not screenshots), depend on a free proxy's
+  uptime, and "attack" (via `glowing`) is the weakest tag. **Dialogue** stays
+  bundled (famous quotes, no API).
 - Players guess the **anime title**; fuzzy-matched (`matchTitle`, fuse.js) against
   per-item aliases. Scoring = flat base + the shared char speed bonus. Solo +
   host-authoritative online (`net/ganimeProtocol.ts` + `store/ganimeNetStore.ts`),

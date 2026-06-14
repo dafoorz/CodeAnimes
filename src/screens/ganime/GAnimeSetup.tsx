@@ -6,8 +6,8 @@ import type { GAnimeMode } from '../../types';
 
 export const GA_MODES: { id: GAnimeMode; icon: string; label: string; desc: string }[] = [
   { id: 'dialogue', icon: '💬', label: 'Dialogue only', desc: 'Guess from a famous quote.' },
-  { id: 'background', icon: '🌄', label: 'Background only', desc: 'A scene from the anime.' },
-  { id: 'attack', icon: '⚔️', label: 'Attack effect', desc: 'A power / attack effect.' },
+  { id: 'background', icon: '🌄', label: 'Background only', desc: 'A scenery shot, no characters.' },
+  { id: 'attack', icon: '⚔️', label: 'Attack effect', desc: 'A glowing power / effect.' },
   { id: 'food', icon: '🍜', label: 'Food scene', desc: 'Guess from the food.' },
 ];
 
@@ -94,7 +94,8 @@ export default function GAnimeSetup() {
         </button>
       </div>
       <p className="text-center text-xs text-white/30">
-        Dialogue uses bundled quotes; the image modes show official anime artwork.
+        Dialogue uses bundled quotes; image modes pull safe (rating:g) themed
+        images from Danbooru.
       </p>
     </div>
   );
