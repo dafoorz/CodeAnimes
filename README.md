@@ -8,10 +8,10 @@ games: **Anime Codenames**, **Guess the Opening**, **Guess the Character**, or
 
 Name the anime from a clue (no title given) — solo or online, four modes:
 **💬 Dialogue** (a bundled set of famous quotes), and three image modes — **🌄
-Background**, **⚔️ Attack effect**, **🍜 Food scene** — which pull real per-anime
-images at runtime from [Danbooru](https://danbooru.donmai.us), filtered to the
-safe `rating:g` (general audiences). Anime titles are fuzzy-matched (fuse.js) and
-scored by speed. The anime↔Danbooru tag map lives in `src/data/guessAnime.ts`.
+Background**, **⚔️ Attack effect**, **🍜 Food scene** — which pull real official
+anime artwork at runtime from Jikan's pictures endpoint (CORS-friendly). Anime
+titles are fuzzy-matched (fuse.js) and scored by speed. The anime list for image
+modes lives in `src/data/guessAnime.ts`.
 
 ### Guess the Character
 

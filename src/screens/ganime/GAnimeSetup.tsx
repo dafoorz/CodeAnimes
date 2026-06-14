@@ -94,8 +94,7 @@ export default function GAnimeSetup() {
         </button>
       </div>
       <p className="text-center text-xs text-white/30">
-        Dialogue uses bundled quotes; the image modes pull safe images from
-        Danbooru.
+        Dialogue uses bundled quotes; the image modes show official anime artwork.
       </p>
     </div>
   );

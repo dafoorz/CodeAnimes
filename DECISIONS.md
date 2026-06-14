@@ -133,14 +133,13 @@ clarifying questions and log decisions here.
   `data/config.ts`.
 
 ## Guess the Anime (added later)
-- **Image modes via Danbooru.** No free API offers anime screenshots categorized
-  by theme, so the three image modes fetch real per-anime images from Danbooru at
-  runtime, filtered to the safe `rating:g` (general audiences). Anonymous
-  searches are limited to 2 tags, so we query `<copyright> <theme>` (theme =
-  scenery/glowing/food) and filter rating client-side. Trade-offs: results are
-  fan art (not screenshots), recognizability varies (esp. "attack effect"), and
-  "background" may include characters since `no_humans` can't fit in the 2-tag
-  budget. **Dialogue** stays bundled (famous quotes, no API).
+- **Image modes via Jikan pictures.** Danbooru's API isn't CORS-enabled (browser
+  fetches were blocked), and no free CORS-enabled API tags anime images by theme.
+  So the three image modes fetch official artwork from Jikan's
+  `/anime/{id}/pictures` (same CORS-friendly API the rest of the app uses, mapped
+  by mal_id). Trade-off: the images are recognizable official art but not
+  theme-specific, so background/attack/food currently share the same source.
+  **Dialogue** stays bundled (famous quotes, no API).
 - Players guess the **anime title**; fuzzy-matched (`matchTitle`, fuse.js) against
   per-item aliases. Scoring = flat base + the shared char speed bonus. Solo +
   host-authoritative online (`net/ganimeProtocol.ts` + `store/ganimeNetStore.ts`),

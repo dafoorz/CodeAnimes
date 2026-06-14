@@ -92,6 +92,24 @@ export async function fetchCoverImage(malId: number): Promise<string> {
   return url;
 }
 
+interface PicturesResponse {
+  data: Array<{ jpg?: { image_url?: string; large_image_url?: string } }>;
+}
+
+/** Fetch an anime's promotional pictures (official artwork). Cached by malId. */
+export async function fetchAnimePictures(malId: number): Promise<string[]> {
+  const key = `pics:${malId}`;
+  const cached = cacheGet<string[]>(key);
+  if (cached) return cached;
+
+  const json = await jikanFetch<PicturesResponse>(`/anime/${malId}/pictures`);
+  const urls = json.data
+    .map((d) => d.jpg?.large_image_url ?? d.jpg?.image_url)
+    .filter((u): u is string => !!u);
+  if (urls.length > 0) cacheSet(key, urls);
+  return urls;
+}
+
 /**
  * An anime's characters ranked by MyAnimeList favorites (most-favorited first,
  * capped at CHARACTER_CAP), plus `fifteen`: how many of them make up the top

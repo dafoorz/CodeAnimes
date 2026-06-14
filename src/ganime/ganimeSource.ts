@@ -1,16 +1,17 @@
 // Builds the round items for "Guess the Anime": bundled quotes for Dialogue, or
-// runtime Danbooru images for the image modes. Shared by solo and online.
+// runtime official artwork (Jikan pictures) for the image modes. Shared by solo
+// and online.
+//
+// Note: no free CORS-enabled API tags anime images by theme (background / attack
+// / food), so all three image modes draw from official anime artwork — real and
+// recognizable, just not theme-specific.
 
 import type { GAnimeItem, GAnimeMode } from '../types';
-import { GA_CATEGORY_TAG, GA_IMAGE_ANIME, getItems } from '../data/guessAnime';
-import { fetchScene } from '../api/danbooru';
+import { GA_IMAGE_ANIME, getItems } from '../data/guessAnime';
+import { fetchAnimePictures } from '../api/jikan';
 import { shuffle } from '../engine/gameLogic';
 import { pickItems } from './ganimeLogic';
 
-/**
- * Produce `n` round items for a mode. Dialogue is instant (bundled); image modes
- * fetch real safe images from Danbooru, reporting progress as they arrive.
- */
 export async function buildItems(
   mode: GAnimeMode,
   n: number,
@@ -20,19 +21,18 @@ export async function buildItems(
     return pickItems(getItems('dialogue'), n);
   }
 
-  const theme = GA_CATEGORY_TAG[mode];
   const animes = shuffle(GA_IMAGE_ANIME);
   const items: GAnimeItem[] = [];
   onProgress?.(0, n);
 
-  // Cycle through animes until we have n images (or give up after enough tries).
   let i = 0;
-  const maxTries = Math.max(n * 4, 20);
+  const maxTries = Math.max(n * 3, 24);
   while (items.length < n && i < maxTries) {
     const a = animes[i % animes.length];
     i++;
-    const url = await fetchScene(a.tag, theme);
-    if (url) {
+    const pics = await fetchAnimePictures(a.malId);
+    if (pics.length > 0) {
+      const url = pics[Math.floor(Math.random() * pics.length)];
       items.push({ anime: a.anime, answers: a.answers, mode, imageUrl: url });
       onProgress?.(items.length, n);
     }

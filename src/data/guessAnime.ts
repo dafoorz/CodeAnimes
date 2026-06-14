@@ -40,45 +40,39 @@ export const ANIME_QUOTES: GAnimeItem[] = [
 ];
 
 /**
- * Image modes pull real per-anime images from Danbooru at runtime (filtered to
- * the safe `rating:g`). Each entry maps a display name to its Danbooru copyright
- * tag. Add a line to include more anime in the image modes.
+ * Image modes pull real per-anime images from Jikan's pictures endpoint at
+ * runtime (CORS-enabled, official artwork). Each entry maps a display name to
+ * its MyAnimeList id. Add a line to include more anime in the image modes.
  */
 export interface GAImageAnime {
   anime: string;
   answers: string[];
-  tag: string; // Danbooru copyright tag
+  malId: number;
 }
 
 export const GA_IMAGE_ANIME: GAImageAnime[] = [
-  { anime: 'Naruto', answers: ['naruto'], tag: 'naruto' },
-  { anime: 'One Piece', answers: ['one piece'], tag: 'one_piece' },
-  { anime: 'Bleach', answers: ['bleach'], tag: 'bleach' },
-  { anime: 'Attack on Titan', answers: ['attack on titan', 'aot', 'snk', 'shingeki no kyojin'], tag: 'shingeki_no_kyojin' },
-  { anime: 'Demon Slayer', answers: ['demon slayer', 'kimetsu no yaiba'], tag: 'kimetsu_no_yaiba' },
-  { anime: 'My Hero Academia', answers: ['my hero academia', 'mha', 'boku no hero academia'], tag: 'boku_no_hero_academia' },
-  { anime: 'Death Note', answers: ['death note'], tag: 'death_note' },
-  { anime: 'Dragon Ball Z', answers: ['dragon ball z', 'dbz', 'dragon ball'], tag: 'dragon_ball' },
-  { anime: 'Jujutsu Kaisen', answers: ['jujutsu kaisen', 'jjk'], tag: 'jujutsu_kaisen' },
-  { anime: 'One Punch Man', answers: ['one punch man', 'opm'], tag: 'one-punch_man' },
-  { anime: 'Tokyo Ghoul', answers: ['tokyo ghoul'], tag: 'tokyo_ghoul' },
-  { anime: 'Fullmetal Alchemist: Brotherhood', answers: ['fullmetal alchemist brotherhood', 'fmab', 'fullmetal alchemist'], tag: 'fullmetal_alchemist' },
-  { anime: 'Hunter x Hunter', answers: ['hunter x hunter', 'hxh'], tag: 'hunter_x_hunter' },
-  { anime: 'Sword Art Online', answers: ['sword art online', 'sao'], tag: 'sword_art_online' },
-  { anime: 'Chainsaw Man', answers: ['chainsaw man', 'csm'], tag: 'chainsaw_man' },
-  { anime: 'Spy x Family', answers: ['spy x family', 'spy family'], tag: 'spy_x_family' },
-  { anime: 'Code Geass', answers: ['code geass'], tag: 'code_geass' },
-  { anime: 'Neon Genesis Evangelion', answers: ['evangelion', 'neon genesis evangelion', 'nge'], tag: 'neon_genesis_evangelion' },
-  { anime: 'Jojo’s Bizarre Adventure', answers: ['jojo', 'jojos bizarre adventure'], tag: 'jojo_no_kimyou_na_bouken_(series)' },
-  { anime: 'Pokémon', answers: ['pokemon', 'pokémon'], tag: 'pokemon_(anime)' },
+  { anime: 'Naruto', answers: ['naruto'], malId: 20 },
+  { anime: 'One Piece', answers: ['one piece'], malId: 21 },
+  { anime: 'Bleach', answers: ['bleach'], malId: 269 },
+  { anime: 'Attack on Titan', answers: ['attack on titan', 'aot', 'snk', 'shingeki no kyojin'], malId: 16498 },
+  { anime: 'Demon Slayer', answers: ['demon slayer', 'kimetsu no yaiba'], malId: 38000 },
+  { anime: 'My Hero Academia', answers: ['my hero academia', 'mha', 'boku no hero academia'], malId: 31964 },
+  { anime: 'Death Note', answers: ['death note'], malId: 1535 },
+  { anime: 'Dragon Ball Z', answers: ['dragon ball z', 'dbz', 'dragon ball'], malId: 813 },
+  { anime: 'Jujutsu Kaisen', answers: ['jujutsu kaisen', 'jjk'], malId: 40748 },
+  { anime: 'One Punch Man', answers: ['one punch man', 'opm'], malId: 30276 },
+  { anime: 'Tokyo Ghoul', answers: ['tokyo ghoul'], malId: 22319 },
+  { anime: 'Fullmetal Alchemist: Brotherhood', answers: ['fullmetal alchemist brotherhood', 'fmab', 'fullmetal alchemist'], malId: 5114 },
+  { anime: 'Hunter x Hunter', answers: ['hunter x hunter', 'hxh'], malId: 11061 },
+  { anime: 'Sword Art Online', answers: ['sword art online', 'sao'], malId: 11757 },
+  { anime: 'Chainsaw Man', answers: ['chainsaw man', 'csm'], malId: 44511 },
+  { anime: 'Spy x Family', answers: ['spy x family', 'spy family'], malId: 50265 },
+  { anime: 'Code Geass', answers: ['code geass'], malId: 1575 },
+  { anime: 'Neon Genesis Evangelion', answers: ['evangelion', 'neon genesis evangelion', 'nge'], malId: 30 },
+  { anime: 'Naruto Shippuden', answers: ['naruto shippuden', 'naruto shippuuden', 'naruto'], malId: 1735 },
+  { anime: 'Mob Psycho 100', answers: ['mob psycho 100', 'mob psycho'], malId: 32182 },
+  { anime: 'Cowboy Bebop', answers: ['cowboy bebop'], malId: 1 },
 ];
-
-/** Danbooru theme tag combined with the copyright tag per image mode. */
-export const GA_CATEGORY_TAG: Record<'background' | 'attack' | 'food', string> = {
-  background: 'scenery',
-  attack: 'glowing',
-  food: 'food',
-};
 
 export function getItems(mode: GAnimeMode): GAnimeItem[] {
   // Only Dialogue is bundled; image modes are fetched at runtime.
