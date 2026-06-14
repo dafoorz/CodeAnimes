@@ -1,5 +1,11 @@
 import { create } from 'zustand';
-import type { CharChallenge, CharMatch, CharResult, Character } from '../types';
+import type {
+  CharChallenge,
+  CharMatch,
+  CharResult,
+  CharRound,
+  Character,
+} from '../types';
 import {
   CHAR_CAP_PER_ANIME,
   CHAR_DEFAULT_ROUNDS,
@@ -11,7 +17,9 @@ import {
   randomCrop,
   roundPoints,
 } from '../char/charLogic';
-import { matchName } from '../char/matching';
+import { matchName, matchTitle } from '../char/matching';
+import { CHARACTER_QUOTES } from '../data/characterQuotes';
+import { shuffle } from '../engine/gameLogic';
 
 type Screen = 'setup' | 'select' | 'play' | 'end';
 type Status = 'guessing' | 'revealed';
@@ -21,7 +29,7 @@ interface CharState {
   challenge: CharChallenge;
   rounds: number;
 
-  characters: Character[];
+  characters: CharRound[];
   index: number;
   level: number;
   crop: { x: number; y: number };
@@ -38,6 +46,8 @@ interface CharState {
   goSelect: () => void;
   goSetup: () => void;
   startSolo: (pool: Character[]) => void;
+  /** Start a Dialogue round straight from bundled character quotes. */
+  startDialogue: () => void;
   /** Returns the match outcome ('no' = wrong, stays in round). */
   submitGuess: (text: string) => CharMatch;
   /** "I don't know" — zoom/unblur a step, or skip for eyes/silhouette. */
@@ -47,7 +57,7 @@ interface CharState {
 }
 
 const FRESH = {
-  characters: [] as Character[],
+  characters: [] as CharRound[],
   index: 0,
   level: 0,
   crop: { x: 50, y: 50 },
@@ -106,7 +116,26 @@ export const useCharStore = create<CharState>((set, get) => {
 
     startSolo: (pool) => {
       const charPool = buildCharPool(pool, CHAR_CAP_PER_ANIME);
-      const characters = pickRoundCharacters(charPool, get().rounds);
+      const chosen = pickRoundCharacters(charPool, get().rounds);
+      const characters: CharRound[] = chosen.map((c) => ({
+        name: c.name,
+        anime: c.anime,
+        imageUrl: c.imageUrl,
+      }));
+      set({ ...FRESH, characters, screen: 'play' });
+      beginRound(0);
+    },
+
+    startDialogue: () => {
+      const characters: CharRound[] = shuffle(CHARACTER_QUOTES)
+        .slice(0, get().rounds)
+        .map((q) => ({
+          name: q.character,
+          anime: q.anime,
+          imageUrl: '',
+          quote: q.quote,
+          answers: q.answers,
+        }));
       set({ ...FRESH, characters, screen: 'play' });
       beginRound(0);
     },
@@ -115,7 +144,7 @@ export const useCharStore = create<CharState>((set, get) => {
       const s = get();
       if (s.status !== 'guessing') return 'no';
       const c = s.characters[s.index];
-      const match = matchName(text, c.name);
+      const match = c.answers ? matchTitle(text, c.answers) : matchName(text, c.name);
       if (match === 'no') return 'no';
       const seconds = (Date.now() - s.startedAt) / 1000;
       reveal(match, roundPoints(s.challenge, s.level, seconds));

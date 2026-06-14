@@ -3,20 +3,15 @@
 // modes. Shared by solo & online.
 
 import type { GAnimeItem, GAnimeMode } from '../types';
-import { GA_CATEGORY_TAG, GA_IMAGE_ANIME, getItems } from '../data/guessAnime';
+import { GA_CATEGORY_TAG, GA_IMAGE_ANIME } from '../data/guessAnime';
 import { fetchScene } from '../api/danbooru';
 import { shuffle } from '../engine/gameLogic';
-import { pickItems } from './ganimeLogic';
 
 export async function buildItems(
   mode: GAnimeMode,
   n: number,
   onProgress?: (done: number, total: number) => void
 ): Promise<GAnimeItem[]> {
-  if (mode === 'dialogue') {
-    return pickItems(getItems('dialogue'), n);
-  }
-
   const theme = GA_CATEGORY_TAG[mode];
   const animes = shuffle(GA_IMAGE_ANIME);
   const items: GAnimeItem[] = [];

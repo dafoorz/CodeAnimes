@@ -66,6 +66,7 @@ export type CharHostMsg =
       total: number;
       challenge: CharChallenge;
       imageUrl: string;
+      quote?: string;
       crop: { x: number; y: number };
     }
   | { t: 'judge'; match: CharMatch; points: number }

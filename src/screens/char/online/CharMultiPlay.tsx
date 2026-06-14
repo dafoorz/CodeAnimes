@@ -17,6 +17,7 @@ export default function CharMultiPlay() {
   const screen = useCharNetStore((s) => s.screen);
   const challenge = useCharNetStore((s) => s.challenge);
   const imageUrl = useCharNetStore((s) => s.imageUrl);
+  const quote = useCharNetStore((s) => s.quote);
   const crop = useCharNetStore((s) => s.crop);
   const level = useCharNetStore((s) => s.level);
   const roundIndex = useCharNetStore((s) => s.roundIndex);
@@ -173,6 +174,7 @@ export default function CharMultiPlay() {
         level={level}
         crop={crop}
         revealed={false}
+        quote={quote}
       />
 
       {!myAnswered && (

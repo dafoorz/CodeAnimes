@@ -7,17 +7,18 @@ games: **Anime Codenames**, **Guess the Opening**, **Guess the Character**, or
 ### Guess the Anime
 
 Name the anime from a clue (no title given) — solo or online, four modes:
-**💬 Dialogue** (a bundled set of famous quotes), and three image modes — **🌄
-Background**, **⚔️ Attack effect**, **🍜 Food scene** — which pull real official
-anime artwork at runtime from Jikan's pictures endpoint (CORS-friendly). Anime
-titles are fuzzy-matched (fuse.js) and scored by speed. The anime list for image
-modes lives in `src/data/guessAnime.ts`.
+three image modes — **🌄 Background**, **⚔️ Attack effect**, **🍜 Food scene** —
+which pull real per-anime themed images at runtime from Danbooru (safe
+`rating:g`, via a CORS proxy). Anime titles are fuzzy-matched (fuse.js) and
+scored by speed. (The Dialogue/quote mode lives in **Guess the Character** —
+you name the character who said the line.)
 
 ### Guess the Character
 
 Name a disguised anime character as fast as you can — solo or online. Pick a
 challenge type: **Eyes Only**, **Silhouette**, **Extreme Zoom** (zoom out for
-fewer points), or **Progressive Blur** (unblur for fewer points). Faster answers
+fewer points), **Progressive Blur** (unblur for fewer points), or **💬 Dialogue**
+(a famous bundled quote — name who said it). Faster answers
 earn a bigger speed bonus. Answers are fuzzy-matched with
 [fuse.js](https://www.fusejs.io/) — first name, last name, full name, or a
 name-part nickname all count, and a near-miss shows "Close enough! ✓". Online is

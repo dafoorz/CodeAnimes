@@ -14,6 +14,7 @@ export const CHALLENGES: {
   { id: 'silhouette', icon: '🌑', label: 'Silhouette', desc: 'Only the black outline.' },
   { id: 'zoom', icon: '🔍', label: 'Extreme Zoom', desc: 'Zoomed in — zoom out for fewer points.' },
   { id: 'blur', icon: '🌫', label: 'Progressive Blur', desc: 'Blurred — unblur for fewer points.' },
+  { id: 'dialogue', icon: '💬', label: 'Dialogue', desc: 'Who said this famous line?' },
 ];
 
 export default function CharSetup() {
@@ -22,8 +23,12 @@ export default function CharSetup() {
   const rounds = useCharStore((s) => s.rounds);
   const setRounds = useCharStore((s) => s.setRounds);
   const goSelect = useCharStore((s) => s.goSelect);
+  const startDialogue = useCharStore((s) => s.startDialogue);
   const enterOnline = useCharNetStore((s) => s.enter);
   const goMenu = useGameStore((s) => s.goMenu);
+
+  // Dialogue uses bundled quotes (no anime selection); other modes pick animes.
+  const playSolo = () => (challenge === 'dialogue' ? startDialogue() : goSelect());
 
   return (
     <div className="mx-auto flex min-h-screen max-w-lg flex-col justify-center gap-7 px-6 py-12">
@@ -81,7 +86,7 @@ export default function CharSetup() {
 
       <div className="flex flex-col gap-3 sm:flex-row">
         <button
-          onClick={goSelect}
+          onClick={playSolo}
           className="flex-1 rounded-xl bg-gradient-to-r from-team-red to-team-blue py-4 text-lg font-bold text-white shadow-lg transition-transform hover:scale-105"
         >
           ▶ Play Solo

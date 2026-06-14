@@ -11,7 +11,7 @@ import type {
 } from '../net/ganimeProtocol';
 import type { CharMatch, GAnimeItem, GAnimeMode } from '../types';
 import { GA_DEFAULT_ROUNDS } from '../data/config';
-import { getItems } from '../data/guessAnime';
+import { GA_IMAGE_ANIME } from '../data/guessAnime';
 import { gaPoints } from '../ganime/ganimeLogic';
 import { buildItems } from '../ganime/ganimeSource';
 import { matchTitle } from '../char/matching';
@@ -103,7 +103,7 @@ export const useGAnimeNetStore = create<GAnimeNetState>((set, get) => {
         screen: s.screen,
         mode: s.mode,
         rounds: s.rounds,
-        available: getItems(s.mode).length,
+        available: GA_IMAGE_ANIME.length,
       },
     };
   }
@@ -267,7 +267,7 @@ export const useGAnimeNetStore = create<GAnimeNetState>((set, get) => {
     selfId: '',
     selfName: '',
     screen: 'connect',
-    mode: 'dialogue',
+    mode: 'background',
     rounds: GA_DEFAULT_ROUNDS,
     ...FRESH,
 
@@ -339,7 +339,7 @@ export const useGAnimeNetStore = create<GAnimeNetState>((set, get) => {
     clearError: () => set({ error: null }),
 
     setMode: (m) => {
-      set({ mode: m, available: getItems(m).length });
+      set({ mode: m, available: GA_IMAGE_ANIME.length });
       broadcastLobby();
     },
     setRounds: (n) => {

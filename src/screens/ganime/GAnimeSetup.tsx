@@ -5,7 +5,6 @@ import { GA_MAX_ROUNDS, GA_MIN_ROUNDS } from '../../data/config';
 import type { GAnimeMode } from '../../types';
 
 export const GA_MODES: { id: GAnimeMode; icon: string; label: string; desc: string }[] = [
-  { id: 'dialogue', icon: '💬', label: 'Dialogue only', desc: 'Guess from a famous quote.' },
   { id: 'background', icon: '🌄', label: 'Background only', desc: 'A scenery shot, no characters.' },
   { id: 'attack', icon: '⚔️', label: 'Attack effect', desc: 'A glowing power / effect.' },
   { id: 'food', icon: '🍜', label: 'Food scene', desc: 'Guess from the food.' },

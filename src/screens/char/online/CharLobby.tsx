@@ -27,7 +27,9 @@ export default function CharLobby() {
   const [picking, setPicking] = useState(false);
   const [copied, setCopied] = useState(false);
   const connected = players.filter((p) => p.connected);
-  const canStart = poolReady && connected.length >= 1;
+  // Dialogue uses bundled quotes (no anime selection needed).
+  const isDialogue = challenge === 'dialogue';
+  const canStart = (isDialogue || poolReady) && connected.length >= 1;
 
   const handleLeave = () => {
     leave();
@@ -131,17 +133,19 @@ export default function CharLobby() {
             />
           </div>
 
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-white/50">
-              {poolReady ? `${poolSize} characters ready` : 'No animes selected yet'}
-            </p>
-            <button
-              onClick={() => setPicking(true)}
-              className="rounded-lg border border-white/20 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/10"
-            >
-              {poolReady ? 'Change animes' : 'Select animes'}
-            </button>
-          </div>
+          {!isDialogue && (
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-white/50">
+                {poolReady ? `${poolSize} characters ready` : 'No animes selected yet'}
+              </p>
+              <button
+                onClick={() => setPicking(true)}
+                className="rounded-lg border border-white/20 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+              >
+                {poolReady ? 'Change animes' : 'Select animes'}
+              </button>
+            </div>
+          )}
 
           <button
             onClick={hostStart}
@@ -150,7 +154,7 @@ export default function CharLobby() {
           >
             Start Game
           </button>
-          {!poolReady && (
+          {!isDialogue && !poolReady && (
             <p className="text-center text-xs text-white/40">Select animes to build the pool first.</p>
           )}
         </div>

@@ -81,6 +81,7 @@ export default function CharPlay() {
         level={level}
         crop={crop}
         revealed={revealed}
+        quote={char.quote}
       />
 
       {!revealed && (

@@ -9,7 +9,7 @@ import type {
   CharRevealInfo,
   CharRoundRow,
 } from '../net/charProtocol';
-import type { CharChallenge, CharMatch, Character } from '../types';
+import type { CharChallenge, CharMatch, CharRound, Character } from '../types';
 import { CHAR_CAP_PER_ANIME, CHAR_DEFAULT_ROUNDS, CHAR_STEPS } from '../data/config';
 import {
   buildCharPool,
@@ -17,7 +17,9 @@ import {
   randomCrop,
   roundPoints,
 } from '../char/charLogic';
-import { matchName } from '../char/matching';
+import { matchName, matchTitle } from '../char/matching';
+import { CHARACTER_QUOTES } from '../data/characterQuotes';
+import { shuffle } from '../engine/gameLogic';
 
 const HOST_ID = 'host';
 
@@ -43,6 +45,7 @@ interface CharNetState {
   roundIndex: number;
   total: number;
   imageUrl: string;
+  quote: string;
   crop: { x: number; y: number };
   level: number;
   startedAt: number;
@@ -74,7 +77,7 @@ interface CharNetState {
 
 let netHost: NetHost<CharClientMsg, CharHostMsg> | null = null;
 let netClient: NetClient<CharClientMsg, CharHostMsg> | null = null;
-let hostChars: Character[] = [];
+let hostChars: CharRound[] = [];
 let charPool: Character[] = [];
 let roundStart = 0;
 let doneSet = new Set<string>();
@@ -87,6 +90,7 @@ const FRESH = {
   roundIndex: 0,
   total: 0,
   imageUrl: '',
+  quote: '',
   crop: { x: 50, y: 50 },
   level: 0,
   startedAt: 0,
@@ -139,6 +143,7 @@ export const useCharNetStore = create<CharNetState>((set, get) => {
       roundIndex: i,
       total: hostChars.length,
       imageUrl: char.imageUrl,
+      quote: char.quote ?? '',
       crop,
       level: 0,
       startedAt: roundStart,
@@ -152,6 +157,7 @@ export const useCharNetStore = create<CharNetState>((set, get) => {
       total: hostChars.length,
       challenge: get().challenge,
       imageUrl: char.imageUrl,
+      quote: char.quote,
       crop,
     });
   }
@@ -192,7 +198,9 @@ export const useCharNetStore = create<CharNetState>((set, get) => {
   function hostJudge(id: string, text: string, level: number) {
     if (get().screen !== 'play' || doneSet.has(id)) return;
     const char = hostChars[get().roundIndex];
-    const match = matchName(text, char.name);
+    const match = char.answers
+      ? matchTitle(text, char.answers)
+      : matchName(text, char.name);
     if (match === 'no') {
       if (id === HOST_ID) set((s) => ({ wrongNonce: s.wrongNonce + 1 }));
       else netHost?.send(id, { t: 'judge', match: 'no', points: 0 });
@@ -265,6 +273,7 @@ export const useCharNetStore = create<CharNetState>((set, get) => {
           total: msg.total,
           challenge: msg.challenge,
           imageUrl: msg.imageUrl,
+          quote: msg.quote ?? '',
           crop: msg.crop,
           level: 0,
           startedAt: Date.now(),
@@ -395,9 +404,26 @@ export const useCharNetStore = create<CharNetState>((set, get) => {
     },
 
     hostStart: () => {
-      const chars = pickRoundCharacters(charPool, get().rounds);
+      let chars: CharRound[];
+      if (get().challenge === 'dialogue') {
+        chars = shuffle(CHARACTER_QUOTES)
+          .slice(0, get().rounds)
+          .map((q) => ({
+            name: q.character,
+            anime: q.anime,
+            imageUrl: '',
+            quote: q.quote,
+            answers: q.answers,
+          }));
+      } else {
+        chars = pickRoundCharacters(charPool, get().rounds).map((c) => ({
+          name: c.name,
+          anime: c.anime,
+          imageUrl: c.imageUrl,
+        }));
+      }
       if (chars.length === 0) {
-        set({ error: 'No characters available. Pick animes first.' });
+        set({ error: 'No content available. Pick animes first.' });
         return;
       }
       hostChars = chars;

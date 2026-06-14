@@ -62,7 +62,7 @@ export const useGAnimeStore = create<GAnimeState>((set, get) => {
 
   return {
     screen: 'setup',
-    mode: 'dialogue',
+    mode: 'background',
     rounds: GA_DEFAULT_ROUNDS,
     loadingMessage: '',
     error: null,

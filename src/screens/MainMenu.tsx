@@ -101,8 +101,8 @@ export default function MainMenu() {
           <div className="text-5xl">🕵</div>
           <h2 className="font-serif text-2xl font-bold text-white">Guess the Character</h2>
           <p className="text-sm text-white/60">
-            Name the disguised anime character — eyes only, silhouette, extreme
-            zoom, or blur. Solo or online.
+            Name the disguised anime character — eyes, silhouette, zoom, blur, or
+            a famous quote. Solo or online.
           </p>
           <span className="mt-1 text-sm font-semibold text-team-blue group-hover:underline">
             Play →
@@ -114,11 +114,11 @@ export default function MainMenu() {
           onClick={openGAnime}
           className="group flex flex-col items-center gap-3 rounded-3xl border-2 border-white/10 bg-gradient-to-br from-team-red/20 to-amber-400/20 p-8 text-center transition-all hover:scale-[1.03] hover:border-white/40"
         >
-          <div className="text-5xl">💬</div>
+          <div className="text-5xl">🌄</div>
           <h2 className="font-serif text-2xl font-bold text-white">Guess the Anime</h2>
           <p className="text-sm text-white/60">
-            Name the anime from a famous quote (and soon: backgrounds, attacks,
-            food). Solo or online.
+            Name the anime from a scene — background, attack effect, or food.
+            Solo or online.
           </p>
           <span className="mt-1 text-sm font-semibold text-amber-400 group-hover:underline">
             Play →

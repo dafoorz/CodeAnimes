@@ -93,10 +93,20 @@ export interface QuizResult {
 
 // --- Guess the Character ---
 
-export type CharChallenge = 'eyes' | 'silhouette' | 'zoom' | 'blur';
+export type CharChallenge = 'eyes' | 'silhouette' | 'zoom' | 'blur' | 'dialogue';
 
 /** How a guess matched the character's name. */
 export type CharMatch = 'perfect' | 'close' | 'no';
+
+/** A single round in Guess the Character: an image disguise or a quote. */
+export interface CharRound {
+  name: string; // canonical character name (display)
+  anime: string;
+  imageUrl: string; // '' for dialogue rounds
+  quote?: string; // dialogue rounds
+  /** Accepted answer aliases; if absent, the name itself is matched. */
+  answers?: string[];
+}
 
 /** Per-round outcome for the recap / best-moment. */
 export interface CharResult {
@@ -111,7 +121,7 @@ export interface CharResult {
 
 // --- Guess the Anime ---
 
-export type GAnimeMode = 'background' | 'attack' | 'food' | 'dialogue';
+export type GAnimeMode = 'background' | 'attack' | 'food';
 
 /** A single round prompt: an image scene or a quote, with the anime answer. */
 export interface GAnimeItem {

@@ -12,6 +12,8 @@ interface Props {
   crop: { x: number; y: number };
   /** Show the full, clear image (after answering/revealing). */
   revealed: boolean;
+  /** The quote, for the dialogue challenge. */
+  quote?: string;
 }
 
 const FRAME = 'h-64 w-full overflow-hidden rounded-2xl border-2 border-white/15 sm:h-80';
@@ -24,7 +26,18 @@ export default function ChallengeView({
   level,
   crop,
   revealed,
+  quote,
 }: Props) {
+  if (challenge === 'dialogue') {
+    return (
+      <div className="flex min-h-[12rem] items-center justify-center rounded-2xl border-2 border-white/15 bg-navy-light p-6 sm:min-h-[16rem]">
+        <p className="text-center font-serif text-2xl font-bold leading-snug text-white sm:text-3xl">
+          “{quote}”
+        </p>
+      </div>
+    );
+  }
+
   if (revealed) {
     return (
       <div className={`${FRAME} flex items-center justify-center bg-black/40`}>
