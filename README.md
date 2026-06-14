@@ -1,7 +1,18 @@
 # Anime Codenames
 
-A browser-based anime game hub. From the **main menu** you can pick one of three
-games: **Anime Codenames**, **Guess the Opening**, or **Guess the Character**.
+A browser-based anime game hub. From the **main menu** you can pick one of four
+games: **Anime Codenames**, **Guess the Opening**, **Guess the Character**, or
+**Guess the Anime**.
+
+### Guess the Anime
+
+Name the anime from a clue (no title given) — solo or online. **💬 Dialogue**
+mode is ready now (a bundled set of famous quotes). The image modes — **🌄
+Background only**, **⚔️ Attack effect**, **🍜 Food scene** — read curated scene
+images from `src/data/guessAnime.ts`; they're empty by default (shown as "coming
+soon") because no free API provides categorized anime screenshots, but adding
+image URLs there turns each mode on automatically. Anime titles are fuzzy-matched
+(fuse.js), scored by speed.
 
 ### Guess the Character
 

@@ -132,6 +132,19 @@ clarifying questions and log decisions here.
 - All tunables (rounds, points, speed bonus, zoom/blur steps) live in
   `data/config.ts`.
 
+## Guess the Anime (added later)
+- **Data reality:** no free API provides anime screenshots categorized as
+  background/attack/food, so those three modes read from curated arrays in
+  `data/guessAnime.ts` (empty by default → shown as "coming soon" on setup and
+  not startable). **Dialogue** ships fully working with a bundled set of famous
+  quotes (no API, safe — quotes contain no character/anime name). Adding image
+  URLs to the arrays turns the other modes on automatically.
+- Players guess the **anime title**; fuzzy-matched (`matchTitle`, fuse.js) against
+  per-item aliases. Scoring = flat base + the shared char speed bonus. Solo +
+  host-authoritative online (`net/ganimeProtocol.ts` + `store/ganimeNetStore.ts`),
+  round reveals once all answer/skip; host advances. No anime selection needed —
+  the pool is the bundled dataset for the chosen mode.
+
 ## Misc
 - If a famous anime's cover image fails to load, a gradient placeholder with the
   title is shown. If a character card image fails, the character's initials are

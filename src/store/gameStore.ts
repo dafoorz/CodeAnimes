@@ -38,6 +38,7 @@ interface GameState {
   goOnline: () => void;
   goQuiz: () => void;
   goChar: () => void;
+  goGAnime: () => void;
 
   // Setup
   setPlayer: (team: Team, role: Role) => void;
@@ -78,6 +79,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   goOnline: () => set({ phase: 'online' }),
   goQuiz: () => set({ phase: 'quiz' }),
   goChar: () => set({ phase: 'char' }),
+  goGAnime: () => set({ phase: 'ganime' }),
 
   setPlayer: (team, role) => set({ playerTeam: team, playerRole: role }),
 

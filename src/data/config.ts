@@ -113,6 +113,14 @@ export const CHAR_ZOOM_SIZES = [800, 650, 500, 350, 200];
 /** CSS blur (px) per Progressive Blur level (most → least blurred). */
 export const CHAR_BLUR_PX = [40, 30, 20, 10, 4];
 
+// --- Guess the Anime ---
+
+export const GA_DEFAULT_ROUNDS = 10;
+export const GA_MIN_ROUNDS = 1;
+export const GA_MAX_ROUNDS = 50;
+/** Base points for a correct anime guess (plus the shared speed bonus). */
+export const GA_BASE_POINTS = 300;
+
 // Sanity check kept as a runtime assertion in dev: the four buckets must fill
 // exactly one board.
 if (RED_CARDS + BLUE_CARDS + NEUTRAL_CARDS + ASSASSIN_CARDS !== BOARD_SIZE) {

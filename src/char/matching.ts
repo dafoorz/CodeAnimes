@@ -52,3 +52,20 @@ export function matchName(guess: string, name: string): CharMatch {
   if (res.length && (res[0].score ?? 1) <= 0.34) return 'close';
   return 'no';
 }
+
+/**
+ * Match a guess against a list of accepted answers (e.g. anime title + aliases).
+ * Like matchName but without the "Last, First" handling — used for titles.
+ */
+export function matchTitle(guess: string, answers: readonly string[]): CharMatch {
+  const g = normalize(guess);
+  if (g.length < 2) return 'no';
+  if (answers.some((a) => normalize(a) === g)) return 'perfect';
+  const fuse = new Fuse(
+    answers.map((a) => ({ raw: a, norm: normalize(a) })),
+    { keys: ['norm'], includeScore: true, threshold: 0.34, ignoreLocation: true }
+  );
+  const res = fuse.search(g);
+  if (res.length && (res[0].score ?? 1) <= 0.34) return 'close';
+  return 'no';
+}

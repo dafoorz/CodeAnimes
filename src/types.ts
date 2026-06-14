@@ -46,7 +46,8 @@ export type Phase =
   | 'end'
   | 'online'
   | 'quiz'
-  | 'char';
+  | 'char'
+  | 'ganime';
 
 // --- Opening Quiz ---
 
@@ -105,6 +106,27 @@ export interface CharResult {
   match: CharMatch | 'skip';
   points: number;
   /** Seconds taken from reveal to answer. */
+  seconds: number;
+}
+
+// --- Guess the Anime ---
+
+export type GAnimeMode = 'background' | 'attack' | 'food' | 'dialogue';
+
+/** A single round prompt: an image scene or a quote, with the anime answer. */
+export interface GAnimeItem {
+  anime: string; // canonical answer / display
+  answers: string[]; // accepted aliases (matched fuzzily)
+  mode: GAnimeMode;
+  quote?: string; // dialogue mode
+  imageUrl?: string; // image modes
+  character?: string; // optional, shown on reveal for dialogue
+}
+
+export interface GAnimeResult {
+  anime: string;
+  match: CharMatch | 'skip';
+  points: number;
   seconds: number;
 }
 

@@ -4,16 +4,21 @@ import { useMultiplayerStore } from '../store/multiplayerStore';
 import { useQuizStore } from '../store/quizStore';
 import { useCharStore } from '../store/charStore';
 import { useCharNetStore } from '../store/charNetStore';
+import { useGAnimeStore } from '../store/ganimeStore';
+import { useGAnimeNetStore } from '../store/ganimeNetStore';
 
 export default function MainMenu() {
   const goHome = useGameStore((s) => s.goHome);
   const goQuiz = useGameStore((s) => s.goQuiz);
   const goChar = useGameStore((s) => s.goChar);
+  const goGAnime = useGameStore((s) => s.goGAnime);
   const resetAnime = useAnimeStore((s) => s.reset);
   const leaveOnline = useMultiplayerStore((s) => s.leave);
   const resetQuiz = useQuizStore((s) => s.reset);
   const resetChar = useCharStore((s) => s.reset);
   const leaveCharNet = useCharNetStore((s) => s.leave);
+  const resetGAnime = useGAnimeStore((s) => s.reset);
+  const leaveGAnimeNet = useGAnimeNetStore((s) => s.leave);
 
   const openCodenames = () => {
     resetAnime();
@@ -33,8 +38,14 @@ export default function MainMenu() {
     goChar();
   };
 
+  const openGAnime = () => {
+    resetGAnime();
+    leaveGAnimeNet();
+    goGAnime();
+  };
+
   return (
-    <div className="mx-auto flex min-h-[100dvh] max-w-3xl flex-col items-center justify-center gap-10 px-6 py-12">
+    <div className="mx-auto flex min-h-[100dvh] max-w-6xl flex-col items-center justify-center gap-10 px-6 py-12">
       <div className="animate-fade-in text-center">
         <p className="font-serif text-xl tracking-[0.3em] text-team-red">アニメ ゲーム</p>
         <h1 className="font-serif text-5xl font-black leading-tight text-white sm:text-6xl">
@@ -43,7 +54,7 @@ export default function MainMenu() {
         <p className="mt-3 text-white/60">Pick a game to play.</p>
       </div>
 
-      <div className="grid w-full animate-pop-in gap-5 sm:grid-cols-3">
+      <div className="grid w-full animate-pop-in gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {/* Codenames */}
         <button
           onClick={openCodenames}
@@ -94,6 +105,22 @@ export default function MainMenu() {
             zoom, or blur. Solo or online.
           </p>
           <span className="mt-1 text-sm font-semibold text-team-blue group-hover:underline">
+            Play →
+          </span>
+        </button>
+
+        {/* Guess the Anime */}
+        <button
+          onClick={openGAnime}
+          className="group flex flex-col items-center gap-3 rounded-3xl border-2 border-white/10 bg-gradient-to-br from-team-red/20 to-amber-400/20 p-8 text-center transition-all hover:scale-[1.03] hover:border-white/40"
+        >
+          <div className="text-5xl">💬</div>
+          <h2 className="font-serif text-2xl font-bold text-white">Guess the Anime</h2>
+          <p className="text-sm text-white/60">
+            Name the anime from a famous quote (and soon: backgrounds, attacks,
+            food). Solo or online.
+          </p>
+          <span className="mt-1 text-sm font-semibold text-amber-400 group-hover:underline">
             Play →
           </span>
         </button>
